@@ -7,6 +7,9 @@ import androidx.navigation.compose.composable
 import com.proyecto.descuentosya.ui.screens.LoginScreen
 import com.proyecto.descuentosya.ui.screens.RegisterScreen
 import com.proyecto.descuentosya.ui.screens.WelcomeScreen
+import com.proyecto.descuentosya.ui.theme.screen.BilleterasScreen
+import com.proyecto.descuentosya.ui.theme.screen.MisDescuentosScreen
+import com.proyecto.descuentosya.ui.theme.screen.WelcomeScreenLogged
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -25,6 +28,15 @@ fun NavGraph(navController: NavHostController) {
         }
         composable("home") {
             // Aquí iría tu pantalla de inicio o "home"
+        }
+        composable("welcome_logged") {
+            WelcomeScreenLogged(navController)
+        }
+        composable("billeteras") {
+            BilleterasScreen(navController)
+        }
+        composable("mis_descuentos") {
+            MisDescuentosScreen()
         }
     }
 }

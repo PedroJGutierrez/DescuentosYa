@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import com.proyecto.descuentosya.auth.AuthManager
 
 @Composable
 fun LoginScreen(navController: NavController) {
@@ -47,8 +48,13 @@ fun LoginScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(onClick = {
-            // Lógica de login aquí
-            navController.navigate("home")
+            if (AuthManager.login(email, password)) {
+                navController.navigate("welcome_logged") {
+                    popUpTo("login") { inclusive = true }
+                }
+            } else {
+                // Podés mostrar un mensaje de error con un Snackbar o similar
+            }
         }, modifier = Modifier.fillMaxWidth()) {
             Text("Entrar")
         }
