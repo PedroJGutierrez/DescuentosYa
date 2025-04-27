@@ -4,13 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.proyecto.descuentosya.ui.screens.LoginScreen
-import com.proyecto.descuentosya.ui.screens.RegisterScreen
+import com.example.descuentosya.ui.screens.LoginScreen
+import com.example.descuentosya.ui.screens.RegisterScreen
 import com.proyecto.descuentosya.ui.screens.WelcomeScreen
-import com.proyecto.descuentosya.ui.theme.screen.BilleterasScreen
-import com.proyecto.descuentosya.ui.theme.screen.MisDescuentosScreen
-import com.proyecto.descuentosya.ui.theme.screen.WelcomeScreenLogged
-
+import com.proyecto.descuentosya.ui.screens.BilleterasScreen
+import com.proyecto.descuentosya.ui.screens.MisDescuentosScreen
 @Composable
 fun NavGraph(navController: NavHostController) {
     NavHost(
@@ -18,26 +16,23 @@ fun NavGraph(navController: NavHostController) {
         startDestination = "welcome"
     ) {
         composable("welcome") {
-            WelcomeScreen(navController)
+            WelcomeScreen(navController = navController)
         }
+
         composable("login") {
-            LoginScreen(navController)
+            LoginScreen(navController = navController)
         }
+
         composable("register") {
-            RegisterScreen(navController)
+            RegisterScreen(navController = navController)
         }
-        composable("home") {
-            // Aquí iría tu pantalla de inicio o "home"
-        }
-        composable("welcome_logged") {
-            WelcomeScreenLogged(navController)
-        }
+
         composable("billeteras") {
-            BilleterasScreen(navController)
+            BilleterasScreen(navController = navController)
         }
-        composable("mis_descuentos") {
-            MisDescuentosScreen()
+
+        composable("billeteras_favoritas") {
+            MisDescuentosScreen(navController = navController)
         }
     }
 }
-

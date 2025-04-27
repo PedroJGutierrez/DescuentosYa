@@ -1,8 +1,16 @@
 package com.proyecto.descuentosya.ui.theme.components
 
-
-
 object DataManager {
-    val billeteras = listOf("MercadoPago", "Ualá", "Modo", "Naranja X")
-    val billeterasSeleccionadas = mutableSetOf<String>()
+    val billeteras = listOf(
+        "Mercado Pago",
+        "Ualá",
+        "BBVA",
+        "Banco Nación",
+        "Banco Provincia",
+        "Banco Ciudad",
+        "Banco Galicia",
+        "Banco Santander",
+        "Banco Macro",
+        "Banco HSBC"
+    )
 }
