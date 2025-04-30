@@ -6,9 +6,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.descuentosya.ui.screens.LoginScreen
 import com.example.descuentosya.ui.screens.RegisterScreen
-import com.proyecto.descuentosya.ui.screens.WelcomeScreen
+import com.example.descuentosya.ui.screens.WelcomeScreen
 import com.proyecto.descuentosya.ui.screens.BilleterasScreen
 import com.proyecto.descuentosya.ui.screens.MisDescuentosScreen
+import com.example.descuentosya.ui.screens.SettingsScreen
 @Composable
 fun NavGraph(navController: NavHostController) {
     NavHost(
@@ -19,6 +20,9 @@ fun NavGraph(navController: NavHostController) {
             WelcomeScreen(navController = navController)
         }
 
+        composable("settings") {
+            SettingsScreen(navController)
+        }
         composable("login") {
             LoginScreen(navController = navController)
         }

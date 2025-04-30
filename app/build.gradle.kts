@@ -56,5 +56,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.retrofit)
     implementation(libs.gson)
+    implementation("androidx.compose.material:material-icons-extended:1.6.1")
 
 }
