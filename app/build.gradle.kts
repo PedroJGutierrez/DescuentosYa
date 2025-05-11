@@ -3,14 +3,15 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.proyecto.descuentosya"
+    namespace = "com.proyecto.DescuentosYa"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.proyecto.descuentosya"
+        applicationId = "com.proyecto.DescuentosYa"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -47,6 +48,8 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
     implementation("androidx.compose.ui:ui-text")
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.firestore.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -57,5 +60,10 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.gson)
     implementation("androidx.compose.material:material-icons-extended:1.6.1")
-
+    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation(libs.work.runtime.ktx)
+    implementation(libs.datastore.preferences)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
 }
