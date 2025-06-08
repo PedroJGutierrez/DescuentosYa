@@ -13,7 +13,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
-import com.proyecto.Descuentosya.ui.theme.screens.LoginViewModel
+import com.proyecto.Descuentosya.login.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,11 +68,21 @@ fun LoginScreen(navController: NavController) {
                 onValueChange = { password = it },
                 label = { Text("Contraseña") },
                 visualTransformation = PasswordVisualTransformation(),
+                isError = loginViewModel.passwordError.value,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
                 shape = MaterialTheme.shapes.medium
             )
+
+            if (loginViewModel.passwordError.value) {
+                Text(
+                    text = "Contraseña incorrecta",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+            }
 
             Button(
                 onClick = {
@@ -101,7 +111,9 @@ fun LoginScreen(navController: NavController) {
             }
 
             loginViewModel.errorMessage.value?.let {
-                Text(it, color = MaterialTheme.colorScheme.error)
+                if (!loginViewModel.passwordError.value) {
+                    Text(it, color = MaterialTheme.colorScheme.error)
+                }
                 if (loginViewModel.showResendVerification.value) {
                     TextButton(onClick = {
                         loginViewModel.resendVerificationEmail()

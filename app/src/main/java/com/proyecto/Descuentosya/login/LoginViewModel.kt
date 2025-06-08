@@ -1,4 +1,4 @@
-package com.proyecto.Descuentosya.ui.theme.screens
+package com.proyecto.Descuentosya.login
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateOf
@@ -14,6 +14,8 @@ class LoginViewModel : ViewModel() {
     var isLoading = mutableStateOf(false)
     var showResendVerification = mutableStateOf(false)
 
+    var passwordError = mutableStateOf(false)
+
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
     fun login(email: String, password: String, context: Context, onSuccess: () -> Unit) {
@@ -21,6 +23,7 @@ class LoginViewModel : ViewModel() {
             isLoading.value = true
             errorMessage.value = null
             message.value = ""
+            passwordError.value = false
 
             viewModelScope.launch {
                 auth.signInWithEmailAndPassword(email, password)
@@ -29,7 +32,6 @@ class LoginViewModel : ViewModel() {
                         if (task.isSuccessful) {
                             val user = auth.currentUser
                             if (user != null && user.isEmailVerified) {
-                                // Guardar token en SharedPreferences
                                 val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
                                 val editor = sharedPreferences.edit()
                                 editor.putString("auth_token", user.uid)
@@ -38,11 +40,21 @@ class LoginViewModel : ViewModel() {
                                 message.value = "Inicio de sesión exitoso"
                                 onSuccess()
                             } else {
-                                auth.signOut() // Importante: cerrar sesión si no está verificado
+                                auth.signOut()
                                 errorMessage.value = "Debes verificar tu correo antes de iniciar sesión"
                                 showResendVerification.value = true
                             }
-
+                        } else {
+                            val errorMsg = task.exception?.message ?: "Error desconocido"
+                            errorMessage.value = when {
+                                errorMsg.contains("password is invalid", ignoreCase = true) ||
+                                        errorMsg.contains("The password is invalid", ignoreCase = true) ||
+                                        errorMsg.contains("INVALID_PASSWORD", ignoreCase = true) -> {
+                                    passwordError.value = true
+                                    "Contraseña incorrecta"
+                                }
+                                else -> errorMsg
+                            }
                         }
                     }
             }
@@ -67,7 +79,6 @@ class LoginViewModel : ViewModel() {
         }
     }
 
-    // Usuario admin por defecto para pruebas (solo para debugging)
     fun loginAsAdmin(context: Context, onSuccess: () -> Unit) {
         val adminEmail = "admin@test.com"
         val adminPassword = "admin123"

@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.work.*
 import java.util.concurrent.TimeUnit
 import java.util.Calendar
-import java.util.concurrent.TimeUnit.DAYS
 import com.proyecto.descuentosya.workers.NotificationWorker
 
 fun scheduleNotifications(context: Context) {
@@ -64,4 +63,3 @@ private fun buildNotificationRequest(
         .addTag("daily_reminders")
         .build()
 }
-

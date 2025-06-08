@@ -1,4 +1,4 @@
-package com.proyecto.Descuentosya.ui.theme.navigation
+package com.proyecto.Descuentosya.notification
 
 object NavRoutes {
     const val WELCOME = "welcome"

@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
             .putString("message", message)
             .build()
 
-        val workRequest = OneTimeWorkRequestBuilder<com.proyecto.descuentosya.workers.NotificationWorker>()
+        val workRequest = OneTimeWorkRequestBuilder<NotificationWorker>()
             .setInitialDelay(delay, TimeUnit.MILLISECONDS)
             .setConstraints(constraints)
             .setInputData(data)
@@ -74,7 +74,7 @@ class MainActivity : ComponentActivity() {
             .putString("message", "¡Bienvenido a DescuentosYa! No olvides revisar tus ofertas.")
             .build()
 
-        val workRequest = OneTimeWorkRequestBuilder<com.proyecto.descuentosya.workers.NotificationWorker>()
+        val workRequest = OneTimeWorkRequestBuilder<NotificationWorker>()
             .setInitialDelay(0, TimeUnit.MILLISECONDS) // Inmediatamente
             .setInputData(data)
             .build()
