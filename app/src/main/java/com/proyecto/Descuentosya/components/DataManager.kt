@@ -1,4 +1,4 @@
-package com.proyecto.Descuentosya.ui.theme.components
+package com.proyecto.Descuentosya.components
 
 object DataManager {
     val billeteras = listOf(

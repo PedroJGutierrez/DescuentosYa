@@ -16,6 +16,7 @@ import androidx.navigation.NavController
 import com.proyecto.DescuentosYa.R
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import com.proyecto.Descuentosya.viewmodel.WelcomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.proyecto.Descuentosya.ui.theme.components.DataManager
+import com.proyecto.Descuentosya.components.DataManager
 import com.proyecto.Descuentosya.data.FavoritosManager
 
 @OptIn(ExperimentalMaterial3Api::class)
