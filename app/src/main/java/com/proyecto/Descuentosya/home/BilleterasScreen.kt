@@ -72,7 +72,7 @@ fun BilleterasScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     items(DataManager.billeteras) { billetera ->
-                        val esFavorito = FavoritosManager.esFavorito(billetera)
+
 
                         BannerCard(
                             billetera = billetera,
