@@ -5,21 +5,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.descuentosya.ui.screens.LoginScreen
-import com.example.descuentosya.ui.screens.RegisterScreen
-import com.example.descuentosya.ui.screens.SettingsScreen
-import com.example.descuentosya.ui.screens.WelcomeScreen
+import com.example.descuentosya.ui.screens.*
 import com.proyecto.Descuentosya.ui.screens.BilleterasScreen
 import com.proyecto.Descuentosya.ui.screens.MisDescuentosScreen
-import com.example.descuentosya.ui.screens.AppearanceScreen
-import com.example.descuentosya.ui.screens.AccountScreen
 import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 
 @Composable
-fun NavGraph(navController: NavHostController, themeViewModel: ThemeViewModel) {
+fun NavGraph(
+    navController: NavHostController,
+    themeViewModel: ThemeViewModel,
+    startDestination: String = "welcome"
+) {
     NavHost(
         navController = navController,
-        startDestination = "welcome"
+        startDestination = startDestination
     ) {
         composable("welcome") {
             WelcomeScreen(navController = navController)
@@ -44,7 +43,11 @@ fun NavGraph(navController: NavHostController, themeViewModel: ThemeViewModel) {
         composable("billeteras_favoritas") {
             MisDescuentosScreen(navController = navController)
         }
-        composable("account") { AccountScreen(navController) }
+
+        composable("account") {
+            AccountScreen(navController)
+        }
+
         composable("appearance") {
             AppearanceScreen(
                 navController = navController,

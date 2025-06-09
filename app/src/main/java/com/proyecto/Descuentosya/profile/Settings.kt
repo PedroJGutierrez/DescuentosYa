@@ -33,8 +33,8 @@ fun SettingsScreen(navController: NavController) {
     val userEmail by welcomeViewModel.currentUserEmail.collectAsState()
 
     // Verificar estado de autenticación al cargar
-    LaunchedEffect(key1 = true) {
-        welcomeViewModel.checkAuthState()
+    LaunchedEffect(Unit) {
+        welcomeViewModel.checkAuthToken(context)
     }
 
     Scaffold(

@@ -1,13 +1,13 @@
 package com.proyecto.Descuentosya.viewmodel
 
 import android.content.Context
+import android.preference.PreferenceManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import android.preference.PreferenceManager
 
 class WelcomeViewModel : ViewModel() {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -19,20 +19,22 @@ class WelcomeViewModel : ViewModel() {
     val currentUserEmail: StateFlow<String?> get() = _currentUserEmail
 
     init {
-        checkAuthState()
-    }
-
-    fun checkAuthState() {
-        val user = auth.currentUser
-        _isLoggedIn.value = user != null
-        _currentUserEmail.value = user?.email
+        _isLoggedIn.value = auth.currentUser != null
+        _currentUserEmail.value = auth.currentUser?.email
     }
 
     fun checkAuthToken(context: Context) {
         viewModelScope.launch {
-            val user = auth.currentUser
-            _isLoggedIn.value = user != null
-            _currentUserEmail.value = user?.email
+            val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            val savedToken = prefs.getString("auth_token", null)
+            val currentUser = auth.currentUser
+            if (savedToken != null && currentUser?.uid == savedToken) {
+                _isLoggedIn.value = true
+                _currentUserEmail.value = currentUser.email
+            } else {
+                _isLoggedIn.value = false
+                _currentUserEmail.value = null
+            }
         }
     }
 
@@ -41,9 +43,11 @@ class WelcomeViewModel : ViewModel() {
         _isLoggedIn.value = false
         _currentUserEmail.value = null
 
-        // Limpiar shared preference de bienvenida
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         prefs.edit().remove("first_login_shown").apply()
+
+        val sessionPrefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        sessionPrefs.edit().remove("auth_token").apply()
     }
 
     fun hasShownWelcome(context: Context): Boolean {

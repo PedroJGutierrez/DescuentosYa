@@ -18,6 +18,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.firestore
 import com.proyecto.DescuentosYa.R
 import com.proyecto.Descuentosya.viewmodel.WelcomeViewModel
 import com.proyecto.Descuentosya.ui.theme.FondoCelesteBackground
@@ -32,12 +35,27 @@ fun WelcomeScreen(navController: NavController) {
     val userEmail by welcomeViewModel.currentUserEmail.collectAsState()
 
     var showWelcomeMessage by remember { mutableStateOf(false) }
+    var hasNavigated by remember { mutableStateOf(false) }
 
     LaunchedEffect(isLoggedIn) {
         welcomeViewModel.checkAuthToken(context)
-        if (isLoggedIn && !welcomeViewModel.hasShownWelcome(context)) {
-            showWelcomeMessage = true
-            welcomeViewModel.setWelcomeShown(context)
+
+        if (isLoggedIn && !hasNavigated) {
+            hasNavigated = true
+
+            val uid = FirebaseAuth.getInstance().currentUser?.uid
+            if (uid != null) {
+                Firebase.firestore.collection("usuarios").document(uid)
+                    .get()
+                    .addOnSuccessListener { doc ->
+                        val tipo = doc.getString("tipo") ?: "Usuario"
+
+                        showWelcomeMessage = !welcomeViewModel.hasShownWelcome(context)
+                        welcomeViewModel.setWelcomeShown(context)
+
+
+                    }
+            }
         }
     }
 
