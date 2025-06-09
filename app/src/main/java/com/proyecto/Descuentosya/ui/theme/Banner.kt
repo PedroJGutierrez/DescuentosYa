@@ -30,13 +30,16 @@ fun BannerCard(
     modifier: Modifier = Modifier,
     onFavoritoCambiado: (String, Boolean) -> Unit = { _, _ -> }
 ) {
-    var esFavorito by remember { mutableStateOf(FavoritosManager.esFavorito(billetera.nombre)) }
+    val favoritos = FavoritosManager.favoritos
+    var esFavorito by remember(favoritos) {
+        mutableStateOf(favoritos.contains(billetera.nombre))
+    }
 
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
             .background(Color.Transparent)
-            .clickable { /* por ahora no hace nada */ }
+            .clickable { }
     ) {
         Image(
             painter = painterResource(id = R.drawable.banner),
@@ -78,13 +81,12 @@ fun BannerCard(
                         },
                         modifier = Modifier
                             .size(32.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.2f))
+                            .padding(0.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Agregar",
-                            tint = Color(0xFF448AFF) // Azul claro
+                        Text(
+                            text = if (esFavorito) "-" else "+",
+                            color = Color(0xFF448AFF),
+                            style = MaterialTheme.typography.titleLarge
                         )
                     }
 

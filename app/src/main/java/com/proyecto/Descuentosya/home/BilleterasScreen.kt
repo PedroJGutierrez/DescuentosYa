@@ -42,6 +42,15 @@ fun BilleterasScreen(navController: NavController) {
         return
     }
 
+    val favoritosCargados = FavoritosManager.favoritosCargados
+
+    if (!favoritosCargados.value) {
+        // Mostrar loading mientras carga favoritos
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
     FondoCelesteBackground {
         Scaffold(
             topBar = {

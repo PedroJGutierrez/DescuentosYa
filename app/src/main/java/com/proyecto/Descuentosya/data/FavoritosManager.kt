@@ -2,6 +2,7 @@ package com.proyecto.Descuentosya.data
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ktx.firestore
@@ -11,8 +12,9 @@ object FavoritosManager {
     private val auth = FirebaseAuth.getInstance()
     private val db = Firebase.firestore
 
-    // Lista reactiva que funciona con Jetpack Compose
     val favoritos = mutableStateListOf<String>()
+    var favoritosCargados = mutableStateOf(false)
+        private set
 
     fun cargarFavoritosDesdeFirestore(context: Context) {
         val uid = auth.currentUser?.uid ?: return
@@ -24,9 +26,10 @@ object FavoritosManager {
                 if (lista != null) {
                     favoritos.addAll(lista)
                 }
+                favoritosCargados.value = true
             }
             .addOnFailureListener {
-                // Podés loguear o manejar el error si querés
+                favoritosCargados.value = true
             }
     }
 
