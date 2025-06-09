@@ -22,7 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.proyecto.descuentosya.viewmodel.ThemeViewModel
+import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 
 class DescuentosYaApp : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

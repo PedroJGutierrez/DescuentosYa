@@ -13,7 +13,7 @@ import com.proyecto.Descuentosya.ui.screens.BilleterasScreen
 import com.proyecto.Descuentosya.ui.screens.MisDescuentosScreen
 import com.example.descuentosya.ui.screens.AppearanceScreen
 import com.example.descuentosya.ui.screens.AccountScreen
-import com.proyecto.descuentosya.viewmodel.ThemeViewModel
+import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 
 @Composable
 fun NavGraph(navController: NavHostController, themeViewModel: ThemeViewModel) {

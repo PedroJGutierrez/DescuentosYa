@@ -1,4 +1,4 @@
-package com.proyecto.descuentosya.viewmodel
+package com.proyecto.Descuentosya.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

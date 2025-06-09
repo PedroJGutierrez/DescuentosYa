@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.work.*
 import java.util.concurrent.TimeUnit
 import java.util.Calendar
-import com.proyecto.descuentosya.workers.NotificationWorker
+import com.proyecto.Descuentosya.notification.NotificationWorker
 
 fun scheduleNotifications(context: Context) {
     val workManager = WorkManager.getInstance(context)

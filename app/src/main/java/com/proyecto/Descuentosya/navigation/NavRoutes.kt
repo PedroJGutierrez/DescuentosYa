@@ -1,4 +1,4 @@
-package com.proyecto.Descuentosya.notification
+package com.proyecto.Descuentosya.navigation
 
 object NavRoutes {
     const val WELCOME = "welcome"

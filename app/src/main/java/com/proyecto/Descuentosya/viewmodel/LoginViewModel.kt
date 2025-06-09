@@ -1,4 +1,4 @@
-package com.proyecto.Descuentosya.login
+package com.proyecto.Descuentosya.viewmodel
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateOf

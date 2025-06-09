@@ -1,6 +1,5 @@
-package com.proyecto.descuentosya.workers
+package com.proyecto.Descuentosya.notification
 
-import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
 import androidx.core.app.NotificationCompat
