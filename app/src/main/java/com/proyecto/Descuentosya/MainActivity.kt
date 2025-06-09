@@ -1,34 +1,56 @@
-package com.proyecto.DescuentosYa
+package com.proyecto.Descuentosya
 
 import android.os.Bundle
+import android.Manifest
+import android.app.Application
+import android.content.pm.PackageManager
+import android.os.Build
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.work.*
-import com.proyecto.Descuentosya.MainApp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.proyecto.Descuentosya.notification.NotificationWorker
+import com.proyecto.Descuentosya.ui.navigation.NavGraph
 import com.proyecto.Descuentosya.ui.theme.DescuentosYaTheme
+import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
+import androidx.work.*
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
-import androidx.work.Data
-import com.proyecto.Descuentosya.notification.NotificationWorker
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        val startDestination = if (currentUser != null && currentUser.isEmailVerified) {
+            "welcome"
+        } else {
+            "welcome" // Podés cambiar a "login" u otra pantalla si querés
+        }
+
         setContent {
             DescuentosYaTheme {
-                MainApp()
+                MainApp(startDestination = startDestination)
             }
         }
 
-        // Solicitar permisos en caso de ser Android 13+
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
         }
 
-        // Programar las notificaciones
         scheduleNotifications()
-
-        // Enviar una notificación inmediata al inicio
         sendImmediateNotification()
     }
 
@@ -37,7 +59,6 @@ class MainActivity : ComponentActivity() {
             .setRequiresBatteryNotLow(true)
             .build()
 
-        // Programar las notificaciones para las 8 AM y 8 PM
         scheduleNotificationAtHour(8, "Es un nuevo día, por lo tanto nuevos descuentos!", constraints)
         scheduleNotificationAtHour(20, "No te olvides de revisar tus descuentos, ¡no lo desaproveches!", constraints)
     }
@@ -68,14 +89,13 @@ class MainActivity : ComponentActivity() {
         WorkManager.getInstance(this).enqueue(workRequest)
     }
 
-    // Método para enviar una notificación inmediata al iniciar la app
     private fun sendImmediateNotification() {
         val data = Data.Builder()
             .putString("message", "¡Bienvenido a DescuentosYa! No olvides revisar tus ofertas.")
             .build()
 
         val workRequest = OneTimeWorkRequestBuilder<NotificationWorker>()
-            .setInitialDelay(0, TimeUnit.MILLISECONDS) // Inmediatamente
+            .setInitialDelay(0, TimeUnit.MILLISECONDS)
             .setInputData(data)
             .build()
 
@@ -83,3 +103,47 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Composable
+fun MainApp(startDestination: String) {
+    val navController = rememberNavController()
+    val context = LocalContext.current
+    val themeViewModel: ThemeViewModel = viewModel(
+        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(context.applicationContext as Application)
+    )
+    val isDarkTheme = themeViewModel.isDarkTheme.collectAsState().value
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val permissionLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission(),
+            onResult = { isGranted ->
+                if (!isGranted) {
+                    Toast.makeText(
+                        context,
+                        "No se podrán mostrar notificaciones sin este permiso.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        )
+
+        LaunchedEffect(Unit) {
+            val permissionCheck = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+            if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    DescuentosYaTheme(darkTheme = isDarkTheme) {
+        Surface(modifier = Modifier) {
+            NavGraph(
+                navController = navController,
+                themeViewModel = themeViewModel,
+                startDestination = startDestination
+            )
+        }
+    }
+}

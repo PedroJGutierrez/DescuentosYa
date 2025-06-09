@@ -1,10 +1,10 @@
-package com.proyecto.Descuentosya.viewmodel
-
 import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
 
 class LoginViewModel : ViewModel() {
@@ -13,87 +13,80 @@ class LoginViewModel : ViewModel() {
     var errorMessage = mutableStateOf<String?>(null)
     var isLoading = mutableStateOf(false)
     var showResendVerification = mutableStateOf(false)
-
     var passwordError = mutableStateOf(false)
+    var userType = mutableStateOf<String?>(null)
 
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val auth = FirebaseAuth.getInstance()
+    private val db = Firebase.firestore
 
     fun login(email: String, password: String, context: Context, onSuccess: () -> Unit) {
-        if (email.isNotEmpty() && password.isNotEmpty()) {
-            isLoading.value = true
-            errorMessage.value = null
-            message.value = ""
-            passwordError.value = false
-
-            viewModelScope.launch {
-                auth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        isLoading.value = false
-                        if (task.isSuccessful) {
-                            val user = auth.currentUser
-                            if (user != null && user.isEmailVerified) {
-                                val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                                val editor = sharedPreferences.edit()
-                                editor.putString("auth_token", user.uid)
-                                editor.apply()
-                                showResendVerification.value = false
-                                message.value = "Inicio de sesión exitoso"
-                                onSuccess()
-                            } else {
-                                auth.signOut()
-                                errorMessage.value = "Debes verificar tu correo antes de iniciar sesión"
-                                showResendVerification.value = true
-                            }
-                        } else {
-                            val errorMsg = task.exception?.message ?: "Error desconocido"
-                            errorMessage.value = when {
-                                errorMsg.contains("password is invalid", ignoreCase = true) ||
-                                        errorMsg.contains("The password is invalid", ignoreCase = true) ||
-                                        errorMsg.contains("INVALID_PASSWORD", ignoreCase = true) -> {
-                                    passwordError.value = true
-                                    "Contraseña incorrecta"
-                                }
-                                else -> errorMsg
-                            }
-                        }
-                    }
-            }
-        } else {
+        if (email.isEmpty() || password.isEmpty()) {
             errorMessage.value = "Por favor, completa todos los campos"
+            return
+        }
+
+        isLoading.value = true
+        viewModelScope.launch {
+            auth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+                    isLoading.value = false
+                    if (task.isSuccessful) {
+                        val user = auth.currentUser
+                        val uid = user?.uid ?: return@addOnCompleteListener
+
+                        if (user.isEmailVerified) {
+                            // Guardar sesión
+                            context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                                .edit().putString("auth_token", uid).apply()
+
+                            db.collection("usuarios").document(uid).get()
+                                .addOnSuccessListener { doc ->
+                                    if (doc.exists()) {
+                                        userType.value = doc.getString("tipo") ?: "Usuario"
+                                    }
+                                    message.value = "Inicio de sesión exitoso"
+                                    onSuccess()
+                                }
+                                .addOnFailureListener {
+                                    errorMessage.value = "Error al obtener datos del usuario"
+                                }
+
+                        } else {
+                            auth.signOut()
+                            errorMessage.value = "Debes verificar tu correo"
+                            showResendVerification.value = true
+                        }
+                    } else {
+                        val errorMsg = task.exception?.message ?: "Error desconocido"
+                        passwordError.value = errorMsg.contains("password", ignoreCase = true)
+                        errorMessage.value = if (passwordError.value) "Contraseña incorrecta" else errorMsg
+                    }
+                }
         }
     }
 
     fun resetPassword(email: String) {
         if (email.isNotEmpty()) {
             auth.sendPasswordResetEmail(email)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        message.value = "Se envió un correo para restablecer la contraseña"
-                        errorMessage.value = null
-                    } else {
-                        errorMessage.value = "No se pudo enviar el correo de recuperación"
-                    }
+                .addOnSuccessListener {
+                    message.value = "Correo para restablecer contraseña enviado"
+                }
+                .addOnFailureListener {
+                    errorMessage.value = "Error al enviar correo: ${it.message}"
                 }
         } else {
-            errorMessage.value = "Ingresa tu correo para restablecer la contraseña"
+            errorMessage.value = "Por favor, ingresa tu correo"
         }
-    }
-
-    fun loginAsAdmin(context: Context, onSuccess: () -> Unit) {
-        val adminEmail = "admin@test.com"
-        val adminPassword = "admin123"
-
-        login(adminEmail, adminPassword, context, onSuccess)
     }
 
     fun resendVerificationEmail() {
         val user = auth.currentUser
-        user?.sendEmailVerification()?.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                message.value = "Correo de verificación reenviado"
-            } else {
-                errorMessage.value = "No se pudo reenviar el correo"
+        user?.sendEmailVerification()
+            ?.addOnSuccessListener {
+                message.value = "Correo reenviado"
             }
-        }
+            ?.addOnFailureListener {
+                errorMessage.value = "Error: ${it.message}"
+            }
     }
 }

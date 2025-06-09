@@ -69,7 +69,7 @@ fun AccountScreen(navController: NavController) {
                 label = { Text("Nombre") },
                 modifier = Modifier.fillMaxWidth()
             )
-            Text("Podés cambiar este dato", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+            Text("Podés cambiar este dato", style = MaterialTheme.typography.labelSmall)
 
             OutlinedTextField(
                 value = apellido,
@@ -77,7 +77,7 @@ fun AccountScreen(navController: NavController) {
                 label = { Text("Apellido") },
                 modifier = Modifier.fillMaxWidth()
             )
-            Text("Podés cambiar este dato", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+            Text("Podés cambiar este dato", style = MaterialTheme.typography.labelSmall)
 
             ExposedDropdownMenuBox(
                 expanded = nacionalidadExpanded,
@@ -107,7 +107,7 @@ fun AccountScreen(navController: NavController) {
                     }
                 }
             }
-            Text("Seleccioná tu nacionalidad", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+            Text("Seleccioná tu nacionalidad", style = MaterialTheme.typography.labelSmall)
 
             OutlinedTextField(
                 value = telefono,
@@ -115,28 +115,33 @@ fun AccountScreen(navController: NavController) {
                 label = { Text("Teléfono") },
                 modifier = Modifier.fillMaxWidth()
             )
-            Text("Podés cambiar este dato", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+            Text("Podés cambiar este dato", style = MaterialTheme.typography.labelSmall)
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
                     if (userId != null) {
-                        val datos = hashMapOf(
-                            "nombre" to nombre,
-                            "apellido" to apellido,
-                            "nacionalidad" to nacionalidad,
-                            "telefono" to telefono
-                        )
-                        db.collection("usuarios").document(userId)
-                            .set(datos)
-                            .addOnSuccessListener {
-                                Toast.makeText(context, "Datos guardados", Toast.LENGTH_SHORT).show()
-                                navController.popBackStack() // Volver a Settings
-                            }
-                            .addOnFailureListener {
-                                Toast.makeText(context, "Error al guardar", Toast.LENGTH_SHORT).show()
-                            }
+                        val userRef = db.collection("usuarios").document(userId)
+                        userRef.get().addOnSuccessListener { doc ->
+                            val oldData = doc.data ?: emptyMap()
+                            val newData = mapOf(
+                                "nombre" to nombre,
+                                "apellido" to apellido,
+                                "nacionalidad" to nacionalidad,
+                                "telefono" to telefono
+                            )
+
+                            // Merge con los datos anteriores
+                            userRef.set(oldData + newData)
+                                .addOnSuccessListener {
+                                    Toast.makeText(context, "Datos guardados", Toast.LENGTH_SHORT).show()
+                                    navController.popBackStack()
+                                }
+                                .addOnFailureListener {
+                                    Toast.makeText(context, "Error al guardar", Toast.LENGTH_SHORT).show()
+                                }
+                        }
                     } else {
                         Toast.makeText(context, "No hay usuario autenticado", Toast.LENGTH_SHORT).show()
                     }
@@ -148,3 +153,5 @@ fun AccountScreen(navController: NavController) {
         }
     }
 }
+
+
