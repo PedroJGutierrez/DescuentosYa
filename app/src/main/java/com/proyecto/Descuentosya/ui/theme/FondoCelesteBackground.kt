@@ -8,6 +8,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.zIndex
 import com.proyecto.DescuentosYa.R
 
 @Composable
@@ -19,7 +20,9 @@ fun FondoCelesteBackground(content: @Composable BoxScope.() -> Unit) {
             painter = painterResource(id = R.drawable.fondoceleste),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .zIndex(-1f) // 🔑 Esta línea asegura que la imagen quede detrás de todo
         )
         content()
     }
