@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import android.preference.PreferenceManager
 
 class WelcomeViewModel : ViewModel() {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -40,10 +41,18 @@ class WelcomeViewModel : ViewModel() {
         _isLoggedIn.value = false
         _currentUserEmail.value = null
 
-        // Limpiar SharedPreferences si es necesario
-        val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.remove("auth_token")
-        editor.apply()
+        // Limpiar shared preference de bienvenida
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        prefs.edit().remove("first_login_shown").apply()
+    }
+
+    fun hasShownWelcome(context: Context): Boolean {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        return prefs.getBoolean("first_login_shown", false)
+    }
+
+    fun setWelcomeShown(context: Context) {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        prefs.edit().putBoolean("first_login_shown", true).apply()
     }
 }

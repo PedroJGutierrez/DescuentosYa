@@ -24,13 +24,17 @@ fun WelcomeScreen(navController: NavController) {
     val context = LocalContext.current
     val welcomeViewModel: WelcomeViewModel = viewModel()
 
-    // Observar el estado de autenticación
     val isLoggedIn by welcomeViewModel.isLoggedIn.collectAsState()
     val userEmail by welcomeViewModel.currentUserEmail.collectAsState()
 
-    // Verificar token al iniciar la pantalla
-    LaunchedEffect(key1 = true) {
+    var showWelcomeMessage by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isLoggedIn) {
         welcomeViewModel.checkAuthToken(context)
+        if (isLoggedIn && !welcomeViewModel.hasShownWelcome(context)) {
+            showWelcomeMessage = true
+            welcomeViewModel.setWelcomeShown(context)
+        }
     }
 
     Scaffold(
@@ -38,8 +42,10 @@ fun WelcomeScreen(navController: NavController) {
             TopAppBar(
                 title = { Text("Descuentos Ya") },
                 actions = {
-                    IconButton(onClick = { navController.navigate("settings") }) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menú")
+                    if (isLoggedIn) {
+                        IconButton(onClick = { navController.navigate("settings") }) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menú")
+                        }
                     }
                 }
             )
@@ -59,18 +65,20 @@ fun WelcomeScreen(navController: NavController) {
             )
 
             if (isLoggedIn) {
-                // Vista para usuario logueado
-                Text(
-                    "Bienvenido: $userEmail",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+                // Mostrar mensaje solo una vez
+                if (showWelcomeMessage) {
+                    Text(
+                        "Bienvenido: $userEmail",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
 
-                Text(
-                    "Sesión iniciada correctamente",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
+                    Text(
+                        "Sesión iniciada correctamente",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+                }
 
                 Button(
                     onClick = { navController.navigate("billeteras") },
@@ -107,7 +115,6 @@ fun WelcomeScreen(navController: NavController) {
                     Text("Cerrar Sesión")
                 }
             } else {
-                // Vista para usuario no logueado
                 Text("Lo que dicen nuestros usuarios:", style = MaterialTheme.typography.bodyLarge)
 
                 Spacer(modifier = Modifier.height(16.dp))

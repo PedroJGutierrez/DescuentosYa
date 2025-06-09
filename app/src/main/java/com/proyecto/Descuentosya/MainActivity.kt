@@ -9,7 +9,7 @@ import com.proyecto.Descuentosya.ui.theme.DescuentosYaTheme
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 import androidx.work.Data
-import com.proyecto.descuentosya.workers.NotificationWorker
+import com.proyecto.Descuentosya.notification.NotificationWorker
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
