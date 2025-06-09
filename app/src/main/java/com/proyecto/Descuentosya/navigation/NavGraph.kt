@@ -5,9 +5,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.descuentosya.ui.screens.*
-import com.proyecto.Descuentosya.ui.screens.BilleterasScreen
-import com.proyecto.Descuentosya.ui.screens.MisDescuentosScreen
+import com.proyecto.Descuentosya.home.BilleterasScreen
+import com.proyecto.Descuentosya.home.MisDescuentosScreen
+import com.proyecto.Descuentosya.home.WelcomeScreen
+import com.proyecto.Descuentosya.login.AccountScreen
+import com.proyecto.Descuentosya.login.ForgotPasswordScreen
+import com.proyecto.Descuentosya.login.LoginScreen
+import com.proyecto.Descuentosya.login.RegisterScreen
+import com.proyecto.Descuentosya.profile.AppearanceScreen
+import com.proyecto.Descuentosya.profile.SettingsScreen
 import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 
 @Composable
@@ -28,6 +34,9 @@ fun NavGraph(
             SettingsScreen(navController)
         }
 
+        composable("forgot_password") {
+            ForgotPasswordScreen(navController)
+        }
         composable("login") {
             LoginScreen(navController = navController)
         }

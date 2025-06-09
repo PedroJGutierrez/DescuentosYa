@@ -1,3 +1,4 @@
+package com.proyecto.Descuentosya.viewmodel
 import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel

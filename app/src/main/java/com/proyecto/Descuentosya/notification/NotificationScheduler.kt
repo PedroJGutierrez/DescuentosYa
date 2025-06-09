@@ -1,4 +1,4 @@
-package com.proyecto.DescuentosYa.notifications
+package com.proyecto.DescuentosYa.notification
 
 import android.content.Context
 import androidx.work.*

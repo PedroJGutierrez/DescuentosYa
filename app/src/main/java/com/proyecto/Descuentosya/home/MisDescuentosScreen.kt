@@ -1,4 +1,4 @@
-package com.proyecto.Descuentosya.ui.screens
+package com.proyecto.Descuentosya.home
 
 import android.content.Context
 import androidx.compose.foundation.layout.*
