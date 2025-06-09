@@ -1,4 +1,4 @@
-package com.proyecto.Descuentosya
+package com.proyecto.DescuentosYa
 
 import android.os.Bundle
 import android.Manifest
@@ -37,7 +37,7 @@ class MainActivity : ComponentActivity() {
         val startDestination = if (currentUser != null && currentUser.isEmailVerified) {
             "welcome"
         } else {
-            "welcome" // Podés cambiar a "login" u otra pantalla si querés
+            "login" // Podés cambiar a "login" u otra pantalla si querés
         }
 
         setContent {

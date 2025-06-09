@@ -1,6 +1,6 @@
-package com.example.descuentosya.ui.screens
+package com.proyecto.Descuentosya.login
 
-import LoginViewModel
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.VisualTransformation
+import com.proyecto.Descuentosya.viewmodel.LoginViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -109,7 +110,7 @@ fun LoginScreen(navController: NavController) {
 
             TextButton(
                 onClick = {
-                    loginViewModel.resetPassword(email)
+                    navController.navigate("forgot_password")
                 },
                 modifier = Modifier.align(Alignment.End)
             ) {

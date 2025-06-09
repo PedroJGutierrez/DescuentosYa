@@ -1,4 +1,4 @@
-package com.example.descuentosya.ui.screens
+package com.proyecto.Descuentosya.viewmodel
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateOf

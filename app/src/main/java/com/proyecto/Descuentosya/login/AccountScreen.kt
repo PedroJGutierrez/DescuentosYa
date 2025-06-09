@@ -1,4 +1,4 @@
-package com.example.descuentosya.ui.screens
+package com.proyecto.Descuentosya.login
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*

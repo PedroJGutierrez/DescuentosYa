@@ -1,5 +1,4 @@
-// AppearanceScreen.kt
-package com.example.descuentosya.ui.screens
+package com.proyecto.Descuentosya.profile
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons

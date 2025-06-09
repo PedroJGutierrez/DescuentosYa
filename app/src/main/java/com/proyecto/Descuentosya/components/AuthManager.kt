@@ -1,4 +1,4 @@
-package com.proyecto.Descuentosya.auth
+package com.proyecto.Descuentosya.components
 
 object AuthManager {
     private val users = listOf(
