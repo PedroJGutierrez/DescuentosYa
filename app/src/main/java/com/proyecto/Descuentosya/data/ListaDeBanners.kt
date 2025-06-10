@@ -1,22 +1,34 @@
-import android.content.Context
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
+package com.proyecto.Descuentosya.home
+
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.*
 import androidx.compose.ui.unit.dp
-import com.proyecto.Descuentosya.components.DataManager
-import com.proyecto.Descuentosya.components.Billetera
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.proyecto.Descuentosya.ui.theme.BannerCard
+import com.proyecto.Descuentosya.viewmodel.BilleterasViewModel
 
 @Composable
-fun ListaBanners(context: Context) {
+fun ListaBanners(navController: NavController, viewModel: BilleterasViewModel = viewModel()) {
+    val billeteras by viewModel.billeteras.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(DataManager.billeteras) { billetera: Billetera ->
-            BannerCard(billetera = billetera, context = context)
+        if (isLoading) {
+            item { CircularProgressIndicator() }
+        } else {
+            items(billeteras) { billetera ->
+                BannerCard(
+                    billetera = billetera,
+                    navController = navController
+                )
+            }
         }
     }
 }

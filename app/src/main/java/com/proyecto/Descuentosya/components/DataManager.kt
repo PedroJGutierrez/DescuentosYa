@@ -4,10 +4,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 
+// Data class
 data class Beneficio(
     val icon: ImageVector,
     val disponible: Boolean,
-    val descripcion: String
+    val descripcion: String,
+    val iconName: String // Agregamos el nombre del icono para referencia
 )
 
 data class Billetera(
@@ -16,116 +18,27 @@ data class Billetera(
 )
 
 object DataManager {
-    val billeteras = listOf(
-        Billetera(
-            nombre = "Mercado Pago",
-            beneficios = listOf(
-                Beneficio(Icons.Default.Fastfood, true, "Comida rápida"),
-                Beneficio(Icons.Default.Movie, true, "Cine"),
-                Beneficio(Icons.Default.ShoppingCart, true, "Supermercados"),
-                Beneficio(Icons.Default.ReceiptLong, false, "Servicios"),
-                Beneficio(Icons.Default.CreditCard, true, "Sube"),
-                Beneficio(Icons.Default.ShowChart, false, "Intereses")
+
+    private fun generarBeneficiosAleatorios(): List<Beneficio> {
+        return IconMapper.availableIcons.map { iconName ->
+            val tieneDescuento = (0..100).random() > 30 // 70% chance de tener descuento
+            val descripcion = IconMapper.generateDescriptionForIcon(iconName, tieneDescuento)
+
+            Beneficio(
+                icon = IconMapper.getIconByName(iconName),
+                disponible = tieneDescuento,
+                descripcion = descripcion,
+                iconName = iconName
             )
-        ),
-        Billetera(
-            nombre = "Ualá",
-            beneficios = listOf(
-                Beneficio(Icons.Default.Fastfood, true, "Comida rápida"),
-                Beneficio(Icons.Default.Movie, false, "Cine"),
-                Beneficio(Icons.Default.ShoppingCart, true, "Supermercados"),
-                Beneficio(Icons.Default.ReceiptLong, true, "Servicios"),
-                Beneficio(Icons.Default.CreditCard, false, "Sube"),
-                Beneficio(Icons.Default.ShowChart, true, "Intereses")
-            )
-        ),
-        Billetera(
-            nombre = "BBVA",
-            beneficios = listOf(
-                Beneficio(Icons.Default.Fastfood, false, "Comida rápida"),
-                Beneficio(Icons.Default.Movie, true, "Cine"),
-                Beneficio(Icons.Default.ShoppingCart, false, "Supermercados"),
-                Beneficio(Icons.Default.ReceiptLong, true, "Servicios"),
-                Beneficio(Icons.Default.CreditCard, true, "Sube"),
-                Beneficio(Icons.Default.ShowChart, true, "Intereses")
-            )
-        ),
-        Billetera(
-            nombre = "Banco Nación",
-            beneficios = listOf(
-                Beneficio(Icons.Default.Fastfood, true, "Comida rápida"),
-                Beneficio(Icons.Default.Movie, false, "Cine"),
-                Beneficio(Icons.Default.ShoppingCart, true, "Supermercados"),
-                Beneficio(Icons.Default.ReceiptLong, true, "Servicios"),
-                Beneficio(Icons.Default.CreditCard, true, "Sube"),
-                Beneficio(Icons.Default.ShowChart, false, "Intereses")
-            )
-        ),
-        Billetera(
-            nombre = "Banco Provincia",
-            beneficios = listOf(
-                Beneficio(Icons.Default.Fastfood, false, "Comida rápida"),
-                Beneficio(Icons.Default.Movie, true, "Cine"),
-                Beneficio(Icons.Default.ShoppingCart, true, "Supermercados"),
-                Beneficio(Icons.Default.ReceiptLong, true, "Servicios"),
-                Beneficio(Icons.Default.CreditCard, true, "Sube"),
-                Beneficio(Icons.Default.ShowChart, true, "Intereses")
-            )
-        ),
-        Billetera(
-            nombre = "Banco Ciudad",
-            beneficios = listOf(
-                Beneficio(Icons.Default.Fastfood, true, "Comida rápida"),
-                Beneficio(Icons.Default.Movie, true, "Cine"),
-                Beneficio(Icons.Default.ShoppingCart, false, "Supermercados"),
-                Beneficio(Icons.Default.ReceiptLong, false, "Servicios"),
-                Beneficio(Icons.Default.CreditCard, true, "Sube"),
-                Beneficio(Icons.Default.ShowChart, true, "Intereses")
-            )
-        ),
-        Billetera(
-            nombre = "Banco Galicia",
-            beneficios = listOf(
-                Beneficio(Icons.Default.Fastfood, true, "Comida rápida"),
-                Beneficio(Icons.Default.Movie, false, "Cine"),
-                Beneficio(Icons.Default.ShoppingCart, true, "Supermercados"),
-                Beneficio(Icons.Default.ReceiptLong, true, "Servicios"),
-                Beneficio(Icons.Default.CreditCard, true, "Sube"),
-                Beneficio(Icons.Default.ShowChart, false, "Intereses")
-            )
-        ),
-        Billetera(
-            nombre = "Banco Santander",
-            beneficios = listOf(
-                Beneficio(Icons.Default.Fastfood, false, "Comida rápida"),
-                Beneficio(Icons.Default.Movie, false, "Cine"),
-                Beneficio(Icons.Default.ShoppingCart, true, "Supermercados"),
-                Beneficio(Icons.Default.ReceiptLong, true, "Servicios"),
-                Beneficio(Icons.Default.CreditCard, false, "Sube"),
-                Beneficio(Icons.Default.ShowChart, true, "Intereses")
-            )
-        ),
-        Billetera(
-            nombre = "Banco Macro",
-            beneficios = listOf(
-                Beneficio(Icons.Default.Fastfood, true, "Comida rápida"),
-                Beneficio(Icons.Default.Movie, true, "Cine"),
-                Beneficio(Icons.Default.ShoppingCart, true, "Supermercados"),
-                Beneficio(Icons.Default.ReceiptLong, true, "Servicios"),
-                Beneficio(Icons.Default.CreditCard, true, "Sube"),
-                Beneficio(Icons.Default.ShowChart, true, "Intereses")
-            )
-        ),
-        Billetera(
-            nombre = "Banco HSBC",
-            beneficios = listOf(
-                Beneficio(Icons.Default.Fastfood, false, "Comida rápida"),
-                Beneficio(Icons.Default.Movie, true, "Cine"),
-                Beneficio(Icons.Default.ShoppingCart, false, "Supermercados"),
-                Beneficio(Icons.Default.ReceiptLong, false, "Servicios"),
-                Beneficio(Icons.Default.CreditCard, true, "Sube"),
-                Beneficio(Icons.Default.ShowChart, false, "Intereses")
-            )
-        )
+        }
+    }
+
+    private val nombresBilleteras = listOf(
+        "Mercado Pago", "Ualá", "BBVA", "Banco Nación", "Banco Provincia",
+        "Banco Ciudad", "Banco Galicia", "Banco Santander", "Banco Macro", "Banco HSBC"
     )
+
+    val billeteras: List<Billetera> = nombresBilleteras.map { nombre ->
+        Billetera(nombre = nombre, beneficios = generarBeneficiosAleatorios())
+    }
 }

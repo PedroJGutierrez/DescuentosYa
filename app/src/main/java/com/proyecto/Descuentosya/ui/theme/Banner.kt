@@ -1,14 +1,12 @@
 package com.proyecto.Descuentosya.ui.theme
 
-import android.content.Context
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,38 +14,86 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.proyecto.DescuentosYa.R
 import com.proyecto.Descuentosya.components.Billetera
 import com.proyecto.Descuentosya.data.FavoritosManager
 
 @Composable
+fun getBackgroundForWallet(nombre: String): Int {
+    return when (nombre.lowercase()) {
+        "mercado pago"   -> R.drawable.mercado
+        "bbva"           -> R.drawable.bbva
+        "banco nación"   -> R.drawable.nacion
+        "banco provincia"-> R.drawable.provincia
+        "banco ciudad"   -> R.drawable.ciudad
+        "banco galicia"  -> R.drawable.galicia
+        "banco santander"-> R.drawable.santander
+        "banco macro"    -> R.drawable.macro
+        "banco hsbc"     -> R.drawable.hsbc
+        else             -> R.drawable.banner
+    }
+}
+
+@Composable
 fun BannerCard(
     billetera: Billetera,
-    context: Context,
+    navController: NavController,
     modifier: Modifier = Modifier,
     onFavoritoCambiado: (String, Boolean) -> Unit = { _, _ -> }
 ) {
-    val favoritos = FavoritosManager.favoritos
-    var esFavorito by remember(favoritos) {
-        mutableStateOf(favoritos.contains(billetera.nombre))
+    val esFavorito by remember {
+        derivedStateOf { FavoritosManager.esFavorito(billetera.nombre) }
     }
+
+    var isPressed by remember { mutableStateOf(false) }
+    val backgroundResId = getBackgroundForWallet(billetera.nombre)
+
+    // Animación suave de opacidad para la capa semitransparente
+    val animatedAlpha by animateFloatAsState(
+        targetValue = if (isPressed) 0.2f else 0.5f,
+        label = "alphaAnim"
+    )
 
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.Transparent)
-            .clickable { }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    // Press prolongado — solo cambia el sombreado
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()   // Espera suelte o cancele
+                        isPressed = false   // Al soltar/cancelar vuelve
+                    },
+                    // Tap corto — navega al detalle
+                    onTap = {
+                        navController.navigate("billetera_detalle/${billetera.nombre}")
+                    }
+                )
+            }
     ) {
+        /* Fondo */
         Image(
-            painter = painterResource(id = R.drawable.banner),
+            painter = painterResource(id = backgroundResId),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.matchParentSize()
         )
 
+        /* Capa oscura animada */
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(Color.Black.copy(alpha = animatedAlpha))
+        )
+
+        /* Contenido */
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -71,13 +117,8 @@ fun BannerCard(
                 ) {
                     IconButton(
                         onClick = {
-                            if (esFavorito) {
-                                FavoritosManager.quitarFavorito(context, billetera.nombre)
-                            } else {
-                                FavoritosManager.agregarFavorito(context, billetera.nombre)
-                            }
-                            esFavorito = !esFavorito
-                            onFavoritoCambiado(billetera.nombre, esFavorito)
+                            FavoritosManager.toggleFavorito(billetera.nombre)
+                            onFavoritoCambiado(billetera.nombre, !esFavorito)
                         },
                         modifier = Modifier
                             .size(32.dp)
@@ -86,7 +127,7 @@ fun BannerCard(
                         Text(
                             text = if (esFavorito) "-" else "+",
                             color = Color(0xFF448AFF),
-                            style = MaterialTheme.typography.titleLarge
+                            fontSize = 24.sp
                         )
                     }
 
@@ -105,7 +146,7 @@ fun BannerCard(
                         Icon(
                             imageVector = beneficio.icon,
                             contentDescription = null,
-                            tint = if (beneficio.disponible) Color.White else Color.LightGray,
+                            tint = if (beneficio.disponible) Color.White else Color(0xFF444444),
                             modifier = Modifier.align(Alignment.Center)
                         )
                     }

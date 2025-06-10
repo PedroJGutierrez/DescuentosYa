@@ -10,6 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,18 +27,32 @@ import com.proyecto.Descuentosya.ui.navigation.NavGraph
 import com.proyecto.Descuentosya.ui.theme.DescuentosYaTheme
 import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 import androidx.work.*
+import com.proyecto.Descuentosya.data.FirestoreUploader
+import com.proyecto.Descuentosya.data.FavoritosManager
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val beneficiosActualizados = FirestoreUploader.guardarBeneficiosSiEsNuevoDia(this)
+        if (beneficiosActualizados) {
+            Toast.makeText(this, "Beneficios actualizados hoy", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "Los beneficios ya están actualizados", Toast.LENGTH_SHORT).show()
+        }
+
         val currentUser = FirebaseAuth.getInstance().currentUser
         val startDestination = if (currentUser != null && currentUser.isEmailVerified) {
+            // Si el usuario está autenticado, cargar sus favoritos
+            FavoritosManager.cargarFavoritosDesdeFirestore()
             "welcome"
         } else {
-            "login" // Podés cambiar a "login" u otra pantalla si querés
+            // Si no está autenticado, limpiar favoritos
+            FavoritosManager.limpiarFavoritos()
+            "login"
         }
 
         setContent {
@@ -59,11 +74,14 @@ class MainActivity : ComponentActivity() {
             .setRequiresBatteryNotLow(true)
             .build()
 
-        scheduleNotificationAtHour(8, "Es un nuevo día, por lo tanto nuevos descuentos!", constraints)
-        scheduleNotificationAtHour(20, "No te olvides de revisar tus descuentos, ¡no lo desaproveches!", constraints)
+        // Cancelar notificaciones anteriores para evitar duplicados
+        WorkManager.getInstance(this).cancelAllWorkByTag("daily_notifications")
+
+        scheduleNotificationAtHour(8, "Es un nuevo día, por lo tanto nuevos descuentos!", constraints, "morning_notification")
+        scheduleNotificationAtHour(20, "No te olvides de revisar tus descuentos, ¡no lo desaproveches!", constraints, "evening_notification")
     }
 
-    private fun scheduleNotificationAtHour(hour: Int, message: String, constraints: Constraints) {
+    private fun scheduleNotificationAtHour(hour: Int, message: String, constraints: Constraints, tag: String) {
         val now = Calendar.getInstance()
         val target = now.clone() as Calendar
         target.set(Calendar.HOUR_OF_DAY, hour)
@@ -84,6 +102,8 @@ class MainActivity : ComponentActivity() {
             .setInitialDelay(delay, TimeUnit.MILLISECONDS)
             .setConstraints(constraints)
             .setInputData(data)
+            .addTag("daily_notifications")
+            .addTag(tag)
             .build()
 
         WorkManager.getInstance(this).enqueue(workRequest)
@@ -97,9 +117,16 @@ class MainActivity : ComponentActivity() {
         val workRequest = OneTimeWorkRequestBuilder<NotificationWorker>()
             .setInitialDelay(0, TimeUnit.MILLISECONDS)
             .setInputData(data)
+            .addTag("welcome_notification")
             .build()
 
         WorkManager.getInstance(this).enqueue(workRequest)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Limpiar favoritos al cerrar la app si es necesario
+        // FavoritosManager.limpiarFavoritos()
     }
 }
 

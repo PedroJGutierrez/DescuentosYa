@@ -30,7 +30,7 @@ fun BilleterasScreen(navController: NavController) {
     val mensajeSnackbar = remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        FavoritosManager.cargarFavoritosDesdeFirestore(context)
+        FavoritosManager.cargarFavoritosDesdeFirestore()
     }
 
     if (authToken == null) {
@@ -45,12 +45,12 @@ fun BilleterasScreen(navController: NavController) {
     val favoritosCargados = FavoritosManager.favoritosCargados
 
     if (!favoritosCargados.value) {
-        // Mostrar loading mientras carga favoritos
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
+
     FondoCelesteBackground {
         Scaffold(
             topBar = {
@@ -81,11 +81,9 @@ fun BilleterasScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     items(DataManager.billeteras) { billetera ->
-
-
                         BannerCard(
                             billetera = billetera,
-                            context = context,
+                            navController = navController,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(150.dp),

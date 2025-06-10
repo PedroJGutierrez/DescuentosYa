@@ -1,6 +1,5 @@
 package com.proyecto.Descuentosya.home
 
-import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,47 +11,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.proyecto.Descuentosya.components.Billetera
 import com.proyecto.Descuentosya.data.FavoritosManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MisDescuentosScreen(navController: NavController) {
-    val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val authToken = sharedPreferences.getString("auth_token", null)
-
     val snackbarHostState = remember { SnackbarHostState() }
     val showSnackbar = remember { mutableStateOf(false) }
     val mensajeSnackbar = remember { mutableStateOf("") }
 
-    if (authToken == null) {
-        LaunchedEffect(Unit) {
-            navController.navigate("login") {
-                popUpTo("billeteras_favoritas") { inclusive = true }
-            }
-        }
-        return
-    }
+    var billeterasFavoritas by remember { mutableStateOf<List<Billetera>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
 
-    // Cargar favoritos desde Firestore al entrar
+    // Cargar favoritos desde Firestore
     LaunchedEffect(Unit) {
-        FavoritosManager.cargarFavoritosDesdeFirestore(context)
+        FavoritosManager.cargarFavoritosDesdeFirestore()
+        billeterasFavoritas = FavoritosManager.obtenerBilleterasFavoritas()
+        isLoading = false
     }
-
-    // Leer favoritos reactivos
-    val billeterasFavoritas by remember { derivedStateOf { FavoritosManager.favoritos.toList() } }
-
-    val descuentos = mapOf(
-        "Mercado Pago" to "20% OFF en restaurantes",
-        "Ualá" to "10% OFF en supermercados",
-        "BBVA" to "15% OFF en ropa",
-        "Brubank" to "5% OFF en tecnología",
-        "Galicia" to "30% OFF en viajes",
-        "Santander" to "25% OFF en bares"
-    )
 
     Scaffold(
         topBar = {
@@ -74,50 +53,63 @@ fun MisDescuentosScreen(navController: NavController) {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (billeterasFavoritas.isEmpty()) {
-                Text("Todavía no tienes billeteras favoritas.", style = MaterialTheme.typography.bodyLarge)
-            } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    items(billeterasFavoritas) { billetera ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                        ) {
-                            Row(
+            when {
+                isLoading -> {
+                    CircularProgressIndicator()
+                }
+                billeterasFavoritas.isEmpty() -> {
+                    Text("Todavía no tienes billeteras favoritas.", style = MaterialTheme.typography.bodyLarge)
+                }
+                else -> {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        items(billeterasFavoritas) { billetera ->
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                    .padding(vertical = 4.dp)
                             ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = billetera,
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = descuentos[billetera] ?: "Descuento exclusivo disponible",
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                }
-
-                                IconButton(
-                                    onClick = {
-                                        FavoritosManager.quitarFavorito(context, billetera)
-                                        mensajeSnackbar.value = "$billetera eliminado"
-                                        showSnackbar.value = true
-                                    }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "Eliminar",
-                                        tint = Color.Red
-                                    )
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = billetera.nombre,
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            billetera.beneficios.forEach { beneficio ->
+                                                Icon(
+                                                    imageVector = beneficio.icon,
+                                                    contentDescription = beneficio.descripcion,
+                                                    tint = if (beneficio.disponible) Color(0xFF4CAF50) else Color.Gray,
+                                                    modifier = Modifier.size(24.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    IconButton(
+                                        onClick = {
+                                            FavoritosManager.quitarFavorito(billetera.nombre)
+                                            billeterasFavoritas = billeterasFavoritas.filterNot { it.nombre == billetera.nombre }
+                                            mensajeSnackbar.value = "${billetera.nombre} eliminado"
+                                            showSnackbar.value = true
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "Eliminar",
+                                            tint = Color.Red
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -133,7 +125,6 @@ fun MisDescuentosScreen(navController: NavController) {
             }
         }
 
-        // Mostrar Snackbar si corresponde
         if (showSnackbar.value) {
             LaunchedEffect(mensajeSnackbar.value) {
                 snackbarHostState.showSnackbar(mensajeSnackbar.value)
