@@ -31,7 +31,6 @@ fun AccountScreen(navController: NavController) {
     )
     var nacionalidadExpanded by remember { mutableStateOf(false) }
 
-    // Cargar datos guardados desde Firestore
     LaunchedEffect(userId) {
         if (userId != null) {
             db.collection("usuarios").document(userId).get()
@@ -62,6 +61,8 @@ fun AccountScreen(navController: NavController) {
             modifier = Modifier
                 .padding(padding)
                 .padding(24.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OutlinedTextField(
                 value = nombre,
@@ -69,15 +70,12 @@ fun AccountScreen(navController: NavController) {
                 label = { Text("Nombre") },
                 modifier = Modifier.fillMaxWidth()
             )
-            Text("Podés cambiar este dato", style = MaterialTheme.typography.labelSmall)
-
             OutlinedTextField(
                 value = apellido,
                 onValueChange = { apellido = it },
                 label = { Text("Apellido") },
                 modifier = Modifier.fillMaxWidth()
             )
-            Text("Podés cambiar este dato", style = MaterialTheme.typography.labelSmall)
 
             ExposedDropdownMenuBox(
                 expanded = nacionalidadExpanded,
@@ -107,7 +105,6 @@ fun AccountScreen(navController: NavController) {
                     }
                 }
             }
-            Text("Seleccioná tu nacionalidad", style = MaterialTheme.typography.labelSmall)
 
             OutlinedTextField(
                 value = telefono,
@@ -115,9 +112,6 @@ fun AccountScreen(navController: NavController) {
                 label = { Text("Teléfono") },
                 modifier = Modifier.fillMaxWidth()
             )
-            Text("Podés cambiar este dato", style = MaterialTheme.typography.labelSmall)
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
@@ -132,11 +126,9 @@ fun AccountScreen(navController: NavController) {
                                 "telefono" to telefono
                             )
 
-                            // Merge con los datos anteriores
                             userRef.set(oldData + newData)
                                 .addOnSuccessListener {
                                     Toast.makeText(context, "Datos guardados", Toast.LENGTH_SHORT).show()
-                                    navController.popBackStack()
                                 }
                                 .addOnFailureListener {
                                     Toast.makeText(context, "Error al guardar", Toast.LENGTH_SHORT).show()
@@ -150,8 +142,30 @@ fun AccountScreen(navController: NavController) {
             ) {
                 Text("Guardar")
             }
+
+            Divider(thickness = 1.dp, modifier = Modifier.padding(vertical = 16.dp))
+
+            Text("Navegar a otras pantallas:", style = MaterialTheme.typography.titleSmall)
+
+            Button(onClick = { navController.navigate("cart") }, modifier = Modifier.fillMaxWidth()) {
+                Text("Ir a Carrito")
+            }
+
+            Button(onClick = { navController.navigate("search") }, modifier = Modifier.fillMaxWidth()) {
+                Text("Ir a Búsqueda")
+            }
+
+            Button(onClick = { navController.navigate("notifications") }, modifier = Modifier.fillMaxWidth()) {
+                Text("Ir a Notificaciones")
+            }
+
+            Button(onClick = { navController.navigate("product_detail") }, modifier = Modifier.fillMaxWidth()) {
+                Text("Ir a Detalle de Producto")
+            }
+
+            Button(onClick = { navController.navigate("edit_profile") }, modifier = Modifier.fillMaxWidth()) {
+                Text("Ir a Editar Perfil")
+            }
         }
     }
 }
-
-

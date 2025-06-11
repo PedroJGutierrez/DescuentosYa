@@ -28,11 +28,10 @@ fun SettingsScreen(navController: NavController) {
     val welcomeViewModel: WelcomeViewModel = viewModel()
     val context = LocalContext.current
 
-    // Observar el estado de autenticación
+
     val isLoggedIn by welcomeViewModel.isLoggedIn.collectAsState()
     val userEmail by welcomeViewModel.currentUserEmail.collectAsState()
 
-    // Verificar estado de autenticación al cargar
     LaunchedEffect(Unit) {
         welcomeViewModel.checkAuthToken(context)
     }

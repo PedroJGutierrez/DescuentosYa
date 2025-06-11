@@ -1,7 +1,9 @@
 package com.proyecto.Descuentosya.home
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -24,6 +26,9 @@ import com.google.firebase.firestore.firestore
 import com.proyecto.DescuentosYa.R
 import com.proyecto.Descuentosya.viewmodel.WelcomeViewModel
 import com.proyecto.Descuentosya.ui.theme.FondoCelesteBackground
+import com.proyecto.Descuentosya.ui.theme.BannerCard
+import com.proyecto.Descuentosya.data.FavoritosManager
+import com.proyecto.Descuentosya.components.Billetera
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +42,16 @@ fun WelcomeScreen(navController: NavController) {
     var showWelcomeMessage by remember { mutableStateOf(false) }
     var hasNavigated by remember { mutableStateOf(false) }
 
+    var billeterasFavoritas by remember { mutableStateOf<List<Billetera>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    // Cargar favoritos al iniciar la pantalla
+    LaunchedEffect(Unit) {
+        FavoritosManager.cargarFavoritosDesdeFirestore()
+        billeterasFavoritas = FavoritosManager.obtenerBilleterasFavoritas()
+        isLoading = false
+    }
+
     LaunchedEffect(isLoggedIn) {
         welcomeViewModel.checkAuthToken(context)
 
@@ -49,11 +64,8 @@ fun WelcomeScreen(navController: NavController) {
                     .get()
                     .addOnSuccessListener { doc ->
                         val tipo = doc.getString("tipo") ?: "Usuario"
-
                         showWelcomeMessage = !welcomeViewModel.hasShownWelcome(context)
                         welcomeViewModel.setWelcomeShown(context)
-
-
                     }
             }
         }
@@ -109,58 +121,45 @@ fun WelcomeScreen(navController: NavController) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         if (isLoggedIn) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                TextButton(onClick = { navController.navigate("billeteras") }) {
+                                    Text("Billeteras")
+                                }
+                            }
+
                             if (showWelcomeMessage) {
-                                Text(
-                                    "Bienvenido: $userEmail",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    modifier = Modifier.padding(bottom = 8.dp)
-                                )
-                                Text(
-                                    "Sesión iniciada correctamente",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    modifier = Modifier.padding(bottom = 24.dp)
-                                )
+                                Text("Bienvenido: $userEmail", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(bottom = 8.dp))
+                                Text("Sesión iniciada correctamente", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(bottom = 24.dp))
                             }
 
-                            Button(
-                                onClick = { navController.navigate("billeteras") },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
-                                shape = MaterialTheme.shapes.large
-                            ) {
-                                Text("Billeteras")
-                            }
-
-                            Button(
-                                onClick = { navController.navigate("billeteras_favoritas") },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
-                                shape = MaterialTheme.shapes.large
-                            ) {
-                                Text("Billeteras Favoritas")
-                            }
-
-                            OutlinedButton(
-                                onClick = {
-                                    welcomeViewModel.logout(context)
-                                    navController.navigate("welcome") {
-                                        popUpTo("welcome") { inclusive = true }
+                            if (isLoading) {
+                                CircularProgressIndicator()
+                            } else if (billeterasFavoritas.isEmpty()) {
+                                Text("Todavía no tienes billeteras favoritas.", style = MaterialTheme.typography.bodyLarge)
+                            } else {
+                                LazyColumn(
+                                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    items(billeterasFavoritas) { billetera ->
+                                        BannerCard(
+                                            billetera = billetera,
+                                            navController = navController,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(150.dp),
+                                            onFavoritoCambiado = { nombre, _ ->
+                                                billeterasFavoritas = billeterasFavoritas.filterNot { it.nombre == nombre }
+                                            }
+                                        )
                                     }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 16.dp),
-                                shape = MaterialTheme.shapes.large
-                            ) {
-                                Text("Cerrar Sesión")
+                                }
                             }
                         } else {
-                            Text(
-                                "Lo que dicen nuestros usuarios:",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
+                            Text("Lo que dicen nuestros usuarios:", style = MaterialTheme.typography.bodyLarge)
 
                             Spacer(modifier = Modifier.height(16.dp))
 

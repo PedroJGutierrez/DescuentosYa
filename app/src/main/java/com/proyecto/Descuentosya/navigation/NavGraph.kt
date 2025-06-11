@@ -15,6 +15,11 @@ import com.proyecto.Descuentosya.profile.AppearanceScreen
 import com.proyecto.Descuentosya.profile.SettingsScreen
 import com.proyecto.Descuentosya.viewmodel.BilleterasViewModel
 import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
+import com.proyecto.Descuentosya.notification.NotificationsScreen
+import com.proyecto.Descuentosya.profile.EditProfileScreen
+import com.proyecto.Descuentosya.home.CartScreen
+import com.proyecto.Descuentosya.home.SearchScreen
+
 
 @Composable
 fun NavGraph(
@@ -35,6 +40,11 @@ fun NavGraph(
         composable("billeteras_favoritas") { MisDescuentosScreen(navController = navController) }
         composable("account") { AccountScreen(navController) }
 
+        composable("cart") { CartScreen(navController = navController) }
+        composable("search") { SearchScreen(navController = navController) }
+        composable("notifications") { NotificationsScreen(navController = navController) }
+
+        composable("edit_profile") { EditProfileScreen(navController = navController) }
         composable("appearance") {
             AppearanceScreen(
                 navController = navController,
