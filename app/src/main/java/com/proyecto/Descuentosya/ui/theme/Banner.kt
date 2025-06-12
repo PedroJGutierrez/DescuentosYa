@@ -1,157 +1,153 @@
 package com.proyecto.Descuentosya.ui.theme
 
-import android.content.Context
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInWindow
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.*
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.proyecto.DescuentosYa.R
+import com.proyecto.Descuentosya.components.Billetera
 import com.proyecto.Descuentosya.data.FavoritosManager
 
 @Composable
+fun getBackgroundForWallet(nombre: String): Int {
+    return when (nombre.lowercase()) {
+        "mercado pago"   -> R.drawable.mercado
+        "bbva"           -> R.drawable.bbva
+        "banco nación"   -> R.drawable.nacion
+        "banco provincia"-> R.drawable.provincia
+        "banco ciudad"   -> R.drawable.ciudad
+        "banco galicia"  -> R.drawable.galicia
+        "banco santander"-> R.drawable.santander
+        "banco macro"    -> R.drawable.macro
+        "banco hsbc"     -> R.drawable.hsbc
+        else             -> R.drawable.banner
+    }
+}
+
+@Composable
 fun BannerCard(
-    billetera: String,
-    context: Context,
+    billetera: Billetera,
+    navController: NavController,
     modifier: Modifier = Modifier,
     onFavoritoCambiado: (String, Boolean) -> Unit = { _, _ -> }
 ) {
-    val esFavorito = FavoritosManager.esFavorito(billetera)
+    val esFavorito by remember {
+        derivedStateOf { FavoritosManager.esFavorito(billetera.nombre) }
+    }
 
-    val iconsWithLabels = listOf(
-        Triple(Icons.Default.Fastfood, true, "Comida rápida"),
-        Triple(Icons.Default.Movie, true, "Cine"),
-        Triple(Icons.Default.ShoppingCart, true, "Supermercados"),
-        Triple(Icons.Default.ReceiptLong, true, "Servicios"),
-        Triple(Icons.Default.CreditCard, true, "Sube"),
-        Triple(Icons.Default.ShowChart, true, "Intereses")
+    var isPressed by remember { mutableStateOf(false) }
+    val backgroundResId = getBackgroundForWallet(billetera.nombre)
+
+    // Animación suave de opacidad para la capa semitransparente
+    val animatedAlpha by animateFloatAsState(
+        targetValue = if (isPressed) 0.2f else 0.5f,
+        label = "alphaAnim"
     )
-
-    var tooltipIndex by remember { mutableStateOf<Int?>(null) }
-    var tooltipPosition by remember { mutableStateOf(Offset.Zero) }
-    val density = LocalDensity.current
-    val iconPositions = remember { mutableStateMapOf<Int, Offset>() }
 
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.Transparent)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    // Press prolongado — solo cambia el sombreado
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()   // Espera suelte o cancele
+                        isPressed = false   // Al soltar/cancelar vuelve
+                    },
+                    // Tap corto — navega al detalle
+                    onTap = {
+                        navController.navigate("billetera_detalle/${billetera.nombre}")
+                    }
+                )
+            }
     ) {
+        /* Fondo */
         Image(
-            painter = painterResource(id = R.drawable.banner),
+            painter = painterResource(id = backgroundResId),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.matchParentSize()
         )
 
+        /* Capa oscura animada */
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(Color.Black.copy(alpha = animatedAlpha))
+        )
+
+        /* Contenido */
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(
-                    text = billetera,
+                    text = billetera.nombre,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimary
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.weight(1f)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    iconsWithLabels.forEachIndexed { index, (icon, enabled, label) ->
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .onGloballyPositioned { coordinates ->
-                                    // Guardamos la posición de cada icono usando positionInWindow
-                                    val position = coordinates.positionInWindow()
-                                    iconPositions[index] = Offset(
-                                        x = position.x + (coordinates.size.width / 2f), // Centro horizontal del icono
-                                        y = position.y // Posición Y del icono
-                                    )
-                                }
-                                .pointerInput(Unit) {
-                                    detectTapGestures(
-                                        onLongPress = {
-                                            tooltipIndex = index
-                                            tooltipPosition = iconPositions[index] ?: Offset.Zero
-                                        },
-                                        onPress = {
-                                            tryAwaitRelease()
-                                            tooltipIndex = null
-                                        }
-                                    )
-                                }
-                        ) {
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = label,
-                                tint = if (enabled) Color.White else Color.LightGray,
-                                modifier = Modifier.align(Alignment.Center)
-                            )
-                        }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    IconButton(
+                        onClick = {
+                            FavoritosManager.toggleFavorito(billetera.nombre)
+                            onFavoritoCambiado(billetera.nombre, !esFavorito)
+                        },
+                        modifier = Modifier
+                            .size(32.dp)
+                            .padding(0.dp)
+                    ) {
+                        Text(
+                            text = if (esFavorito) "-" else "+",
+                            color = Color(0xFF448AFF),
+                            fontSize = 24.sp
+                        )
                     }
+
+                    Icon(
+                        imageVector = Icons.Default.AccountBalanceWallet,
+                        contentDescription = null,
+                        tint = Color(0xFF448AFF),
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
             }
 
-            Button(
-                onClick = {
-                    if (esFavorito) {
-                        FavoritosManager.quitarFavorito(context, billetera)
-                    } else {
-                        FavoritosManager.agregarFavorito(context, billetera)
-                    }
-                    onFavoritoCambiado(billetera, !esFavorito)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(if (esFavorito) "Quitar de Favoritos" else "Agregar a Favoritos")
-            }
-        }
-
-        // Tooltip posicionado correctamente
-        tooltipIndex?.let { index ->
-            val label = iconsWithLabels.getOrNull(index)?.third ?: ""
-            if (label.isNotEmpty() && tooltipPosition != Offset.Zero) {
-                Popup(
-                    offset = IntOffset(
-                        x = with(density) { (tooltipPosition.x - 60.dp.toPx()).toInt() }, // Centramos el tooltip
-                        y = with(density) { (tooltipPosition.y - 60.dp.toPx()).toInt() }  // Posicionamos ARRIBA del icono
-                    ),
-                    properties = PopupProperties(focusable = false)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .background(
-                                Color.Black.copy(alpha = 0.9f),
-                                RoundedCornerShape(6.dp)
-                            )
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = label,
-                            color = Color.White,
-                            fontSize = 12.sp
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                billetera.beneficios.forEach { beneficio ->
+                    Box(modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            imageVector = beneficio.icon,
+                            contentDescription = null,
+                            tint = if (beneficio.disponible) Color.White else Color(0xFF444444),
+                            modifier = Modifier.align(Alignment.Center)
                         )
                     }
                 }
