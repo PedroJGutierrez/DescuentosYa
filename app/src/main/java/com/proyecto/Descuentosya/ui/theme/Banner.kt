@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.proyecto.DescuentosYa.R
 import com.proyecto.Descuentosya.components.Billetera
+import com.proyecto.Descuentosya.components.IconMapper
 import com.proyecto.Descuentosya.data.FavoritosManager
 
 @Composable
@@ -142,12 +143,15 @@ fun BannerCard(
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 billetera.beneficios.forEach { beneficio ->
-                    Box(modifier = Modifier.size(32.dp)) {
+                    Box(
+                        modifier = Modifier.size(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Icon(
-                            imageVector = beneficio.icon,
-                            contentDescription = null,
-                            tint = if (beneficio.disponible) Color.White else Color(0xFF444444),
-                            modifier = Modifier.align(Alignment.Center)
+                            imageVector = IconMapper.getIconByName(beneficio.iconName),
+                            contentDescription = beneficio.descripcion,
+                            tint = if (beneficio.disponible) Color.White else Color.Gray, // APLICAR DIRECTAMENTE AQUÍ
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }

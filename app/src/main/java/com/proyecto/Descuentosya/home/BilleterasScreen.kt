@@ -13,16 +13,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.proyecto.Descuentosya.components.Billetera
-import com.proyecto.Descuentosya.components.DataManager
+import com.proyecto.Descuentosya.viewmodel.BilleterasViewModel
 import com.proyecto.Descuentosya.data.FavoritosManager
 import com.proyecto.Descuentosya.ui.theme.FondoCelesteBackground
 import com.proyecto.Descuentosya.ui.theme.BannerCard
+import com.proyecto.Descuentosya.components.Billetera
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BilleterasScreen(navController: NavController) {
+fun BilleterasScreen(navController: NavController, viewModel: BilleterasViewModel = viewModel()) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val authToken = sharedPreferences.getString("auth_token", null)
@@ -32,6 +33,10 @@ fun BilleterasScreen(navController: NavController) {
     val mensajeSnackbar = remember { mutableStateOf("") }
 
     var filtroAbierto by remember { mutableStateOf(false) }
+
+    val favoritosCargados = FavoritosManager.favoritosCargados
+    val billeteras by viewModel.billeteras.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     LaunchedEffect(Unit) {
         FavoritosManager.cargarFavoritosDesdeFirestore()
@@ -46,22 +51,18 @@ fun BilleterasScreen(navController: NavController) {
         return
     }
 
-    val favoritosCargados = FavoritosManager.favoritosCargados
-
-    if (!favoritosCargados.value) {
+    if (isLoading || !favoritosCargados.value) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
 
-    val billeterasOrdenadas = remember {
-        DataManager.billeteras.sortedWith(
-            compareByDescending<Billetera> { billetera ->
-                billetera.beneficios.any { it.disponible }
-            }.thenBy { it.nombre }
-        )
-    }
+    val billeterasOrdenadas = billeteras.sortedWith(
+        compareByDescending<Billetera> { billetera ->
+            billetera.beneficios.any { it.disponible }
+        }.thenBy { it.nombre }
+    )
 
     FondoCelesteBackground {
         Scaffold(
@@ -156,4 +157,3 @@ fun BilleterasScreen(navController: NavController) {
         }
     }
 }
-

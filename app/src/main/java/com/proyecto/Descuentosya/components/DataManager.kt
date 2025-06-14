@@ -9,7 +9,7 @@ data class Beneficio(
     val icon: ImageVector,
     val disponible: Boolean,
     val descripcion: String,
-    val iconName: String // Agregamos el nombre del icono para referencia
+    val iconName: String
 )
 
 data class Billetera(
@@ -21,8 +21,12 @@ object DataManager {
 
     private fun generarBeneficiosAleatorios(): List<Beneficio> {
         return IconMapper.availableIcons.map { iconName ->
-            val tieneDescuento = (0..100).random() > 30 // 70% chance de tener descuento
-            val descripcion = IconMapper.generateDescriptionForIcon(iconName, tieneDescuento)
+            val tieneDescuento = (0..100).random() > 30 // 70% chance
+            val categoria = IconMapper.getCategoryByIconName(iconName)
+            val descripcion = if (tieneDescuento)
+                "Hasta 20% de descuento en $categoria"
+            else
+                "Sin descuentos en $categoria"
 
             Beneficio(
                 icon = IconMapper.getIconByName(iconName),

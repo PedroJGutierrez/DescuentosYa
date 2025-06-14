@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ExitToApp
@@ -16,10 +17,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.proyecto.DescuentosYa.R
+import com.proyecto.Descuentosya.ui.theme.PurplePrimary
 import com.proyecto.Descuentosya.viewmodel.WelcomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,34 +33,38 @@ import com.proyecto.Descuentosya.viewmodel.WelcomeViewModel
 fun SettingsScreen(navController: NavController) {
     val welcomeViewModel: WelcomeViewModel = viewModel()
     val context = LocalContext.current
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
 
+    var firestoreEmail by remember { mutableStateOf("") }
+    var paisSeleccionado by remember { mutableStateOf("") }
+    var expanded by remember { mutableStateOf(false) }
 
-    val isLoggedIn by welcomeViewModel.isLoggedIn.collectAsState()
-    val userEmail by welcomeViewModel.currentUserEmail.collectAsState()
+    val paises = listOf(
+        "Argentina", "Uruguay", "Chile", "Paraguay", "Perú",
+        "Bolivia", "Brasil", "México", "Colombia", "España"
+    )
 
     LaunchedEffect(Unit) {
         welcomeViewModel.checkAuthToken(context)
+        userId?.let {
+            FirebaseFirestore.getInstance()
+                .collection("usuarios")
+                .document(it)
+                .get()
+                .addOnSuccessListener { document ->
+                    firestoreEmail = document.getString("email") ?: ""
+                    paisSeleccionado = document.getString("pais") ?: ""
+                }
+        }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Ajustes") },
+                title = { Text("Mi Perfil") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
-                    }
-                },
-                actions = {
-                    if (isLoggedIn) {
-                        IconButton(onClick = {
-                            welcomeViewModel.logout(context)
-                            navController.navigate("welcome") {
-                                popUpTo("welcome") { inclusive = true }
-                            }
-                        }) {
-                            Icon(Icons.Default.ExitToApp, contentDescription = "Cerrar sesión")
-                        }
                     }
                 }
             )
@@ -64,100 +74,106 @@ fun SettingsScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(24.dp)
+                .background(Color.White)
         ) {
-            // Perfil
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+            // Encabezado
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+                    .background(PurplePrimary),
+                contentAlignment = Alignment.Center
             ) {
-                Box(modifier = Modifier.size(100.dp)) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Image(
                         painter = painterResource(id = R.drawable.icono),
                         contentDescription = "Foto de perfil",
                         modifier = Modifier
-                            .size(100.dp)
+                            .size(80.dp)
                             .clip(CircleShape)
-                            .background(Color.LightGray)
+                            .background(Color.White)
                     )
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .size(24.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("✎", color = Color.White, fontSize = MaterialTheme.typography.labelSmall.fontSize)
-                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = firestoreEmail,
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 14.sp
+                    )
                 }
+            }
 
-                Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-                // Mostrar el email del usuario si está logueado
-                Text(
-                    userEmail ?: "Usuario anónimo",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    "@${userEmail?.substringBefore('@') ?: "sin_sesion"}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
-
-                if (isLoggedIn) {
-                    Button(
-                        onClick = {
-                            welcomeViewModel.logout(context)
-                            navController.navigate("welcome") {
-                                popUpTo("welcome") { inclusive = true }
+            // Selector de país
+            Column(modifier = Modifier.padding(horizontal = 32.dp)) {
+                Text("País", fontWeight = FontWeight.SemiBold)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .clickable { expanded = true }
+                        .background(Color.Transparent.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                        .padding(12.dp)
+                ) {
+                    Text(paisSeleccionado.ifEmpty { "Seleccionar país" })
+                }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    paises.forEach { pais ->
+                        DropdownMenuItem(
+                            text = { Text(pais) },
+                            onClick = {
+                                paisSeleccionado = pais
+                                expanded = false
                             }
-                        },
-                        modifier = Modifier
-                            .padding(top = 16.dp)
-                            .fillMaxWidth(0.7f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
                         )
-                    ) {
-                        Icon(
-                            Icons.Default.ExitToApp,
-                            contentDescription = "Cerrar sesión",
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
-                        Text("Cerrar Sesión", color = MaterialTheme.colorScheme.onErrorContainer)
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            val settingsOptions = listOf(
-                "Cuenta" to { navController.navigate("account") },
-                "Apariencia" to { navController.navigate("appearance") },
-                "Suscripciones" to { /* futuro */ },
-                "Notificaciones" to { /* futuro */ },
-                "Idioma" to { /* futuro */ },
-                "Privacidad y seguridad" to { /* futuro */ },
-                "Almacenamiento" to { /* futuro */ }
-            )
+            // Botón de actualización
+            Button(
+                onClick = {
+                    userId?.let {
+                        FirebaseFirestore.getInstance()
+                            .collection("usuarios")
+                            .document(it)
+                            .update("pais", paisSeleccionado)
+                    }
+                },
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(horizontal = 32.dp)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Actualizar")
+            }
 
-            settingsOptions.forEach { (label, action) ->
-                SettingOption(label, onClick = action)
+            // Cerrar sesión
+            val isLoggedIn by welcomeViewModel.isLoggedIn.collectAsState()
+            if (isLoggedIn) {
+                TextButton(
+                    onClick = {
+                        welcomeViewModel.logout(context)
+                        navController.navigate("welcome") {
+                            popUpTo("welcome") { inclusive = true }
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(top = 16.dp)
+                ) {
+                    Icon(Icons.Default.ExitToApp, contentDescription = "Cerrar sesión", tint = Color.Red)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Cerrar sesión", color = Color.Red)
+                }
             }
         }
-    }
-}
-
-@Composable
-fun SettingOption(text: String, onClick: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp)
-    ) {
-        Text(text, style = MaterialTheme.typography.bodyLarge)
-        Divider(color = Color.LightGray, thickness = 0.5.dp)
     }
 }
