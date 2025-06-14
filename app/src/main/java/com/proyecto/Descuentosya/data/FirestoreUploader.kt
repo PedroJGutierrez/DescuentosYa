@@ -15,17 +15,17 @@ object FirestoreUploader {
         val ultimoDiaGuardado = prefs.getString("ultimo_dia", null)
         val diaActual = LocalDate.now().toString()
 
-        // 🔁 Ya se guardó hoy
         if (ultimoDiaGuardado == diaActual) return false
 
         val db = FirebaseFirestore.getInstance()
 
         DataManager.billeteras.forEach { billetera ->
             val beneficiosMapeados = billetera.beneficios.map { beneficio ->
+                val iconName = beneficio.iconName.replace("Filled.", "")
                 mapOf(
                     "descripcion" to beneficio.descripcion,
-                    "disponible" to beneficio.disponible,
-                    "icon" to beneficio.iconName.replace("Filled.", "")
+                    "disponible" to beneficio.disponible, // CORREGIDO: Usar directamente el campo disponible
+                    "icon" to iconName
                 )
             }
 
@@ -35,6 +35,6 @@ object FirestoreUploader {
         }
 
         prefs.edit().putString("ultimo_dia", diaActual).apply()
-        return true // ✅ Se cargaron beneficios hoy
+        return true
     }
 }

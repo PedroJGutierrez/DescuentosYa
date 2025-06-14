@@ -37,12 +37,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val beneficiosActualizados = FirestoreUploader.guardarBeneficiosSiEsNuevoDia(this)
-        if (beneficiosActualizados) {
-            Toast.makeText(this, "Beneficios actualizados hoy", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "Los beneficios ya están actualizados", Toast.LENGTH_SHORT).show()
-        }
+        FirestoreUploader.guardarBeneficiosSiEsNuevoDia(this)
 
         val currentUser = FirebaseAuth.getInstance().currentUser
         val startDestination = if (currentUser != null && currentUser.isEmailVerified) {
