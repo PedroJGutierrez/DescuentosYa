@@ -53,6 +53,9 @@ fun NavGraph(
             )
         }
 
+        composable("notifications") {
+            NotificationsScreen(navController)
+        }
         // NUEVA PANTALLA
         composable("billetera_detalle/{nombre}") { backStackEntry ->
             val billeteraNombre = backStackEntry.arguments?.getString("nombre") ?: ""
