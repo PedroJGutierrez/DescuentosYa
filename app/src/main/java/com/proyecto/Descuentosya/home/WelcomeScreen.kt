@@ -38,6 +38,7 @@ fun WelcomeScreen(navController: NavController) {
 
     val isLoggedIn by welcomeViewModel.isLoggedIn.collectAsState()
     val userEmail by welcomeViewModel.currentUserEmail.collectAsState()
+    val favoritosCargados = FavoritosManager.favoritosCargados.value
 
     var showWelcomeMessage by remember { mutableStateOf(false) }
     var hasNavigated by remember { mutableStateOf(false) }
@@ -45,11 +46,17 @@ fun WelcomeScreen(navController: NavController) {
     var billeterasFavoritas by remember { mutableStateOf<List<Billetera>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // Cargar favoritos al iniciar la pantalla
+    // Solo dispara la carga inicial
     LaunchedEffect(Unit) {
         FavoritosManager.cargarFavoritosDesdeFirestore()
-        billeterasFavoritas = FavoritosManager.obtenerBilleterasFavoritas()
-        isLoading = false
+    }
+
+    // Reacciona a cuando los favoritos ya están cargados
+    LaunchedEffect(favoritosCargados) {
+        if (favoritosCargados) {
+            billeterasFavoritas = FavoritosManager.obtenerBilleterasFavoritas()
+            isLoading = false
+        }
     }
 
     LaunchedEffect(isLoggedIn) {
@@ -91,7 +98,7 @@ fun WelcomeScreen(navController: NavController) {
                     actions = {
                         if (isLoggedIn) {
                             IconButton(onClick = { navController.navigate("settings") }) {
-                                Icon(Icons.Default.Menu, contentDescription = "Menú")
+                                Icon(Icons.Default.Menu, contentDescription = "Men\u00fa")
                             }
                         }
                     }
@@ -132,13 +139,13 @@ fun WelcomeScreen(navController: NavController) {
 
                             if (showWelcomeMessage) {
                                 Text("Bienvenido: $userEmail", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(bottom = 8.dp))
-                                Text("Sesión iniciada correctamente", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(bottom = 24.dp))
+                                Text("Sesi\u00f3n iniciada correctamente", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(bottom = 24.dp))
                             }
 
                             if (isLoading) {
                                 CircularProgressIndicator()
                             } else if (billeterasFavoritas.isEmpty()) {
-                                Text("Todavía no tienes billeteras favoritas.", style = MaterialTheme.typography.bodyLarge)
+                                Text("Todav\u00eda no tienes billeteras favoritas.", style = MaterialTheme.typography.bodyLarge)
                             } else {
                                 LazyColumn(
                                     verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -198,7 +205,7 @@ fun WelcomeScreen(navController: NavController) {
                                     .padding(vertical = 8.dp),
                                 shape = MaterialTheme.shapes.large
                             ) {
-                                Text("Iniciar Sesión")
+                                Text("Iniciar Sesi\u00f3n")
                             }
 
                             OutlinedButton(

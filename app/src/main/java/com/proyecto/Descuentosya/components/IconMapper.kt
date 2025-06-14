@@ -27,8 +27,11 @@ object IconMapper {
         val cleanName = name.removePrefix("Filled.").trim()
         return iconMap[cleanName] ?: Icons.Default.Help
     }
+
     fun getCategoryByIconName(iconName: String): String {
-        return categoryMap[iconName] ?: "Otros"
+        // CORREGIDO: Limpiar el prefijo "Filled." igual que en getIconByName
+        val cleanName = iconName.removePrefix("Filled.").trim()
+        return categoryMap[cleanName] ?: "Otros"
     }
 
     fun generateDescriptionForIcon(iconName: String, hasDiscount: Boolean): String {

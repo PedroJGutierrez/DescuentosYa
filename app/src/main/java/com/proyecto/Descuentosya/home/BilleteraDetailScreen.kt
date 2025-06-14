@@ -65,14 +65,14 @@ fun BilleteraDetailScreen(
                                     .fillMaxWidth()
                                     .padding(vertical = 8.dp)
                             ) {
-                                // Círculo con ícono dinámico
+                                // Círculo con ícono dinámico - CORREGIDO
                                 Box(
                                     modifier = Modifier
                                         .size(48.dp)
                                         .background(
                                             color = if (beneficio.disponible)
-                                                MaterialTheme.colorScheme.primary
-                                            else Color.LightGray,
+                                                MaterialTheme.colorScheme.primary // Círculo azul si disponible
+                                            else Color.LightGray, // Círculo gris si no disponible
                                             shape = CircleShape
                                         ),
                                     contentAlignment = Alignment.Center
@@ -80,7 +80,7 @@ fun BilleteraDetailScreen(
                                     Icon(
                                         imageVector = IconMapper.getIconByName(beneficio.iconName),
                                         contentDescription = null,
-                                        tint = Color.White,
+                                        tint = if (beneficio.disponible) Color.White else Color.Gray, // CORREGIDO: Icono blanco si disponible, gris si no
                                         modifier = Modifier.size(28.dp)
                                     )
                                 }
