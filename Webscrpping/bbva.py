@@ -3,12 +3,12 @@ from bs4 import BeautifulSoup
 from google.cloud import firestore
 import os
 
-# Configurar Firestore
+
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "serviceAccount.json"
 db = firestore.Client()
 collection_name = "bbva_benefits"
 
-# Webscraping de beneficios individuales
+
 def scrape_benefits():
     url = "https://www.bbva.com.ar/beneficios/beneficios"
     headers = {
@@ -41,7 +41,7 @@ def scrape_benefits():
 
     return extracted
 
-# Guardar en Firestore cada beneficio por separado
+
 def save_benefits_to_firestore(benefits):
     for benefit in benefits:
         doc_ref = db.collection(collection_name).document()
