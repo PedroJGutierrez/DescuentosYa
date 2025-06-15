@@ -8,3 +8,8 @@ val AzulClaro = Color(0xFF5472d3)
 val Blanco = Color(0xFFFFFFFF)
 val GrisClaro = Color(0xFFF2F2F2)
 val PurplePrimary = Color(0xFF6A5AE0)
+
+// NUEVOS para tema oscuro
+val GrisOscuro = Color(0xFF121212)      // fondo oscuro
+val GrisIntermedio = Color(0xFF1E1E1E)  // superficie/tarjetas
+val GrisTexto = Color(0xFFCCCCCC)       // texto suave sobre gris oscuro

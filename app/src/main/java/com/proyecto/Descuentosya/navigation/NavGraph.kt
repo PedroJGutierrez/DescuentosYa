@@ -8,7 +8,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.proyecto.Descuentosya.home.BilleterasScreen
 import com.proyecto.Descuentosya.home.BilleteraDetailScreen
-import com.proyecto.Descuentosya.home.MisDescuentosScreen
 import com.proyecto.Descuentosya.home.WelcomeScreen
 import com.proyecto.Descuentosya.login.*
 import com.proyecto.Descuentosya.profile.AppearanceScreen
@@ -16,9 +15,10 @@ import com.proyecto.Descuentosya.profile.SettingsScreen
 import com.proyecto.Descuentosya.viewmodel.BilleterasViewModel
 import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 import com.proyecto.Descuentosya.notification.NotificationsScreen
+import com.proyecto.Descuentosya.profile.AccountsScreen
 import com.proyecto.Descuentosya.profile.EditProfileScreen
-import com.proyecto.Descuentosya.home.CartScreen
-import com.proyecto.Descuentosya.home.SearchScreen
+import com.proyecto.Descuentosya.profile.PrivacyScreen
+import com.proyecto.Descuentosya.profile.SecurityScreen
 
 
 @Composable
@@ -37,11 +37,10 @@ fun NavGraph(
         composable("login") { LoginScreen(navController = navController) }
         composable("register") { RegisterScreen(navController = navController) }
         composable("billeteras") { BilleterasScreen(navController = navController) }
-        composable("billeteras_favoritas") { MisDescuentosScreen(navController = navController) }
-        composable("account") { AccountScreen(navController) }
 
-        composable("cart") { CartScreen(navController = navController) }
-        composable("search") { SearchScreen(navController = navController) }
+        composable("account") { AccountsScreen(navController) }
+
+
         composable("notifications") { NotificationsScreen(navController = navController) }
 
         composable("edit_profile") { EditProfileScreen(navController = navController) }
@@ -53,6 +52,19 @@ fun NavGraph(
             )
         }
 
+        composable("notifications") {
+            NotificationsScreen(navController)
+        }
+        composable("edit_profile?focusField={focusField}") { backStackEntry ->
+            EditProfileScreen(navController)
+        }
+        composable("privacy") {
+            PrivacyScreen(navController)
+        }
+        composable("accounts") {
+            AccountsScreen(navController)
+        }
+        composable("security") { SecurityScreen(navController) }
         // NUEVA PANTALLA
         composable("billetera_detalle/{nombre}") { backStackEntry ->
             val billeteraNombre = backStackEntry.arguments?.getString("nombre") ?: ""
