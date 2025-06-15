@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Blue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -32,7 +33,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.proyecto.DescuentosYa.R
-import com.proyecto.Descuentosya.ui.theme.PurplePrimary
 import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,28 +93,6 @@ fun EditProfileScreen(navController: NavController) {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
                     }
-                },
-                actions = {
-                    val themeViewModel: ThemeViewModel = viewModel()
-                    val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
-
-                    IconButton(onClick = { themeViewModel.setDarkTheme(!isDarkTheme) }) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .background(Color.Gray.copy(alpha = 0.2f), shape = CircleShape)
-                                .padding(6.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(
-                                    id = if (isDarkTheme) R.drawable.luna_mitad else R.drawable.luna_blanca
-                                ),
-                                contentDescription = "Cambiar tema",
-                                tint = Color.White
-                            )
-                        }
-                    }
                 }
             )
         }
@@ -130,7 +108,7 @@ fun EditProfileScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp)
-                    .background(PurplePrimary),
+                    .background(Blue),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -144,7 +122,7 @@ fun EditProfileScreen(navController: NavController) {
             if (showFocusMessage) {
                 Text(
                     text = "Agrega un nombre para que se vea en el Perfil",
-                    color = PurplePrimary,
+                    color = Blue,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -175,8 +153,8 @@ fun EditProfileScreen(navController: NavController) {
                             .fillMaxWidth()
                             .focusRequester(focusRequester),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = PurplePrimary,
-                            focusedLabelColor = PurplePrimary
+                            focusedBorderColor = Blue,
+                            focusedLabelColor = Blue
                         )
                     )
 
@@ -191,8 +169,8 @@ fun EditProfileScreen(navController: NavController) {
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = PurplePrimary,
-                            focusedLabelColor = PurplePrimary
+                            focusedBorderColor = Blue,
+                            focusedLabelColor = Blue
                         )
                     )
 
@@ -228,8 +206,8 @@ fun EditProfileScreen(navController: NavController) {
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = PurplePrimary,
-                            focusedLabelColor = PurplePrimary
+                            focusedBorderColor = Blue,
+                            focusedLabelColor = Blue
                         )
                     )
                 }
@@ -251,7 +229,7 @@ fun EditProfileScreen(navController: NavController) {
                     .padding(horizontal = 16.dp)
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PurplePrimary),
+                colors = ButtonDefaults.buttonColors(containerColor = Blue),
                 enabled = !isLoading
             ) {
                 if (isLoading) {
@@ -267,7 +245,7 @@ fun EditProfileScreen(navController: NavController) {
             if (message.isNotEmpty()) {
                 Text(
                     text = message,
-                    color = if (message.contains("Error")) Color.Red else PurplePrimary,
+                    color = if (message.contains("Error")) Color.Red else Blue,
                     modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.bodyMedium
                 )

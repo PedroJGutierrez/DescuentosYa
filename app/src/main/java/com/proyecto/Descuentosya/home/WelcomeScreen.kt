@@ -135,7 +135,7 @@ fun WelcomeScreen(navController: NavController) {
                                 horizontalArrangement = Arrangement.End
                             ) {
                                 TextButton(onClick = { navController.navigate("billeteras") }) {
-                                    Text("Billeteras", color = Color.Black)
+                                    Text("Billeteras", color = Color.Blue)
                                 }
                             }
 

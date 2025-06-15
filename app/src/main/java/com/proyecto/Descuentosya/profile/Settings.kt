@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Blue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -109,7 +110,7 @@ fun SettingsScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(140.dp)
-                    .background(PurplePrimary),
+                    .background(Blue),
                 contentAlignment = Alignment.Center
             ) {
                 if (nombre.isNotBlank() && apellido.isNotBlank()) {
@@ -182,13 +183,26 @@ fun SettingsScreen(navController: NavController) {
                     )
 
                     Divider(color = colorScheme.outline.copy(alpha = 0.2f))
-                    SettingsItem(icon = Icons.Default.PrivacyTip, title = "Privacidad") {}
+                    SettingsItem(
+                        icon = Icons.Default.PrivacyTip,
+                        title = "Privacidad",
+                        onClick = { navController.navigate("privacy") }
+                    )
                     Divider(color = colorScheme.outline.copy(alpha = 0.2f))
-                    SettingsItem(icon = Icons.Default.Security, title = "Seguridad") {}
+                    SettingsItem(
+                        icon = Icons.Default.Security,
+                        title = "Seguridad",
+                        onClick = { navController.navigate("security") }
+                    )
                     Divider(color = colorScheme.outline.copy(alpha = 0.2f))
-                    SettingsItem(icon = Icons.Default.ContactSupport, title = "Contáctanos") {}
+
+                    SettingsItem(
+                        icon = Icons.Default.AccountCircle,
+                        title = "Cuentas",
+                        onClick = { navController.navigate("accounts") }
+                    )
                     Divider(color = colorScheme.outline.copy(alpha = 0.2f))
-                    SettingsItem(icon = Icons.Default.Help, title = "FAQ") {}
+
                 }
             }
 

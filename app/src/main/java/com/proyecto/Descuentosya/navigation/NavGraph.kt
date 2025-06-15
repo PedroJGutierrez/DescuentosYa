@@ -8,7 +8,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.proyecto.Descuentosya.home.BilleterasScreen
 import com.proyecto.Descuentosya.home.BilleteraDetailScreen
-
 import com.proyecto.Descuentosya.home.WelcomeScreen
 import com.proyecto.Descuentosya.login.*
 import com.proyecto.Descuentosya.profile.AppearanceScreen
@@ -16,8 +15,10 @@ import com.proyecto.Descuentosya.profile.SettingsScreen
 import com.proyecto.Descuentosya.viewmodel.BilleterasViewModel
 import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 import com.proyecto.Descuentosya.notification.NotificationsScreen
+import com.proyecto.Descuentosya.profile.AccountsScreen
 import com.proyecto.Descuentosya.profile.EditProfileScreen
-
+import com.proyecto.Descuentosya.profile.PrivacyScreen
+import com.proyecto.Descuentosya.profile.SecurityScreen
 
 
 @Composable
@@ -37,7 +38,7 @@ fun NavGraph(
         composable("register") { RegisterScreen(navController = navController) }
         composable("billeteras") { BilleterasScreen(navController = navController) }
 
-        composable("account") { AccountScreen(navController) }
+        composable("account") { AccountsScreen(navController) }
 
 
         composable("notifications") { NotificationsScreen(navController = navController) }
@@ -57,6 +58,13 @@ fun NavGraph(
         composable("edit_profile?focusField={focusField}") { backStackEntry ->
             EditProfileScreen(navController)
         }
+        composable("privacy") {
+            PrivacyScreen(navController)
+        }
+        composable("accounts") {
+            AccountsScreen(navController)
+        }
+        composable("security") { SecurityScreen(navController) }
         // NUEVA PANTALLA
         composable("billetera_detalle/{nombre}") { backStackEntry ->
             val billeteraNombre = backStackEntry.arguments?.getString("nombre") ?: ""
