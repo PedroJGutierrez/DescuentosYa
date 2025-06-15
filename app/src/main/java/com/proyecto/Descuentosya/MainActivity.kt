@@ -22,6 +22,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.proyecto.Descuentosya.notification.NotificationWorker
 import com.proyecto.Descuentosya.ui.navigation.NavGraph
 import com.proyecto.Descuentosya.ui.theme.DescuentosYaTheme
@@ -54,7 +55,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-
         setContent {
             DescuentosYaTheme {
                 MainApp(startDestination = startDestination)
@@ -65,8 +65,18 @@ class MainActivity : ComponentActivity() {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
         }
 
-        scheduleNotifications()
-        sendImmediateNotification()
+        // ✅ Solo programar notificaciones si el usuario las tiene activadas
+        currentUser?.uid?.let { uid ->
+            FirebaseFirestore.getInstance().collection("usuarios").document(uid)
+                .get()
+                .addOnSuccessListener { doc ->
+                    val notificacionesActivas = doc.getBoolean("notificacionesActivas") ?: true
+                    if (notificacionesActivas) {
+                        scheduleNotifications()
+                        sendImmediateNotification()
+                    }
+                }
+        }
     }
 
     private fun scheduleNotifications() {
@@ -125,8 +135,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // Limpiar favoritos al cerrar la app si es necesario
-        // FavoritosManager.limpiarFavoritos()
+        // FavoritosManager.limpiarFavoritos() // ← Si se desea limpiar al salir completamente
     }
 }
 
