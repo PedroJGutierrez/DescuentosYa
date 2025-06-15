@@ -40,15 +40,20 @@ class MainActivity : ComponentActivity() {
         FirestoreUploader.guardarBeneficiosSiEsNuevoDia(this)
 
         val currentUser = FirebaseAuth.getInstance().currentUser
-        val startDestination = if (currentUser != null && currentUser.isEmailVerified) {
-            // Si el usuario está autenticado, cargar sus favoritos
-            FavoritosManager.cargarFavoritosDesdeFirestore()
-            "welcome"
-        } else {
-            // Si no está autenticado, limpiar favoritos
-            FavoritosManager.limpiarFavoritos()
-            "login"
+        val desdeNotificacion = intent?.getBooleanExtra("desde_notificacion", false) ?: false
+
+        val startDestination = when {
+            desdeNotificacion -> "welcome"
+            currentUser != null && currentUser.isEmailVerified -> {
+                FavoritosManager.cargarFavoritosDesdeFirestore()
+                "welcome"
+            }
+            else -> {
+                FavoritosManager.limpiarFavoritos()
+                "login"
+            }
         }
+
 
         setContent {
             DescuentosYaTheme {

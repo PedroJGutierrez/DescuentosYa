@@ -1,15 +1,12 @@
 package com.proyecto.Descuentosya.profile
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,6 +24,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.proyecto.DescuentosYa.R
 import com.proyecto.Descuentosya.ui.theme.PurplePrimary
+import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 import com.proyecto.Descuentosya.viewmodel.WelcomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,15 +33,11 @@ fun SettingsScreen(navController: NavController) {
     val welcomeViewModel: WelcomeViewModel = viewModel()
     val context = LocalContext.current
     val userId = FirebaseAuth.getInstance().currentUser?.uid
+    val colorScheme = MaterialTheme.colorScheme
 
     var firestoreEmail by remember { mutableStateOf("") }
-    var paisSeleccionado by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
-
-    val paises = listOf(
-        "Argentina", "Uruguay", "Chile", "Paraguay", "Perú",
-        "Bolivia", "Brasil", "México", "Colombia", "España"
-    )
+    var nombre by remember { mutableStateOf("") }
+    var apellido by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         welcomeViewModel.checkAuthToken(context)
@@ -54,7 +48,8 @@ fun SettingsScreen(navController: NavController) {
                 .get()
                 .addOnSuccessListener { document ->
                     firestoreEmail = document.getString("email") ?: ""
-                    paisSeleccionado = document.getString("pais") ?: ""
+                    nombre = document.getString("nombre") ?: ""
+                    apellido = document.getString("apellido") ?: ""
                 }
         }
     }
@@ -69,8 +64,31 @@ fun SettingsScreen(navController: NavController) {
                     }
                 },
                 actions = {
+                    val themeViewModel: ThemeViewModel = viewModel()
+                    val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
+
+                    IconButton(onClick = { themeViewModel.setDarkTheme(!isDarkTheme) }) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(Color.Gray.copy(alpha = 0.2f), shape = CircleShape)
+                                .padding(6.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(
+                                    id = if (isDarkTheme) R.drawable.luna_mitad else R.drawable.luna_blanca
+                                ),
+                                contentDescription = "Cambiar tema",
+                                tint = Color.White
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
                     IconButton(onClick = {
-                        navController.navigate("notifications") // Asegurate que el NavGraph tenga esta ruta
+                        navController.navigate("notifications")
                     }) {
                         Icon(
                             imageVector = Icons.Default.Notifications,
@@ -85,88 +103,97 @@ fun SettingsScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color.White)
+                .background(colorScheme.background)
         ) {
-            // Encabezado
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(160.dp)
+                    .height(140.dp)
                     .background(PurplePrimary),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        painter = painterResource(id = R.drawable.icono),
-                        contentDescription = "Foto de perfil",
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(CircleShape)
-                            .background(Color.White)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+                if (nombre.isNotBlank() && apellido.isNotBlank()) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "$nombre $apellido",
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = firestoreEmail,
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 14.sp
+                        )
+                    }
+                } else {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.clickable {
+                            navController.navigate("edit_profile?focusField=nombre")
+                        }
+                    ) {
+                        Text(
+                            text = "Agrega un nombre para que se vea en el Perfil",
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
 
-                    Text(
-                        text = firestoreEmail,
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 14.sp
-                    )
-                }
-            }
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Agregar datos",
+                                tint = Color.White
+                            )
+                        }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
-            // Selector de país
-            Column(modifier = Modifier.padding(horizontal = 32.dp)) {
-                Text("País", fontWeight = FontWeight.SemiBold)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                        .clickable { expanded = true }
-                        .background(Color.Transparent.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
-                        .padding(12.dp)
-                ) {
-                    Text(paisSeleccionado.ifEmpty { "Seleccionar país" })
-                }
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    paises.forEach { pais ->
-                        DropdownMenuItem(
-                            text = { Text(pais) },
-                            onClick = {
-                                paisSeleccionado = pais
-                                expanded = false
-                            }
+                        Text(
+                            text = "Agrega tus datos",
+                            color = Color.White,
+                            fontSize = 14.sp
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // Botón de actualización
-            Button(
-                onClick = {
-                    userId?.let {
-                        FirebaseFirestore.getInstance()
-                            .collection("usuarios")
-                            .document(it)
-                            .update("pais", paisSeleccionado)
-                    }
-                },
+            Card(
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(horizontal = 32.dp)
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = colorScheme.surface)
             ) {
-                Text("Actualizar")
+                Column {
+                    SettingsItem(
+                        icon = Icons.Default.Person,
+                        title = "Editar perfil",
+                        onClick = { navController.navigate("edit_profile") }
+                    )
+
+                    Divider(color = colorScheme.outline.copy(alpha = 0.2f))
+                    SettingsItem(icon = Icons.Default.PrivacyTip, title = "Privacidad") {}
+                    Divider(color = colorScheme.outline.copy(alpha = 0.2f))
+                    SettingsItem(icon = Icons.Default.Security, title = "Seguridad") {}
+                    Divider(color = colorScheme.outline.copy(alpha = 0.2f))
+                    SettingsItem(icon = Icons.Default.ContactSupport, title = "Contáctanos") {}
+                    Divider(color = colorScheme.outline.copy(alpha = 0.2f))
+                    SettingsItem(icon = Icons.Default.Help, title = "FAQ") {}
+                }
             }
 
-            // Cerrar sesión
+            Spacer(modifier = Modifier.weight(1f))
+
             val isLoggedIn by welcomeViewModel.isLoggedIn.collectAsState()
             if (isLoggedIn) {
                 TextButton(
@@ -178,7 +205,7 @@ fun SettingsScreen(navController: NavController) {
                     },
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
-                        .padding(top = 16.dp)
+                        .padding(bottom = 32.dp)
                 ) {
                     Icon(Icons.Default.ExitToApp, contentDescription = "Cerrar sesión", tint = Color.Red)
                     Spacer(modifier = Modifier.width(8.dp))
@@ -186,5 +213,43 @@ fun SettingsScreen(navController: NavController) {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun SettingsItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = title,
+            tint = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.size(24.dp)
+        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        )
+
+        Icon(
+            imageVector = Icons.Default.ChevronRight,
+            contentDescription = "Ir a $title",
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            modifier = Modifier.size(20.dp)
+        )
     }
 }
