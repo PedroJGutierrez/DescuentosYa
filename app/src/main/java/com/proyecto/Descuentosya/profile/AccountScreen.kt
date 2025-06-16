@@ -1,6 +1,6 @@
 package com.proyecto.Descuentosya.profile
 
-import android.content.Context
+import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -15,15 +15,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.ImageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -50,14 +53,21 @@ fun AccountsScreen(navController: NavController) {
     var whatsapp by remember { mutableStateOf<String?>(null) }
     var telegram by remember { mutableStateOf<String?>(null) }
     var gmail by remember { mutableStateOf<String?>(null) }
+    var googlePhoto by remember { mutableStateOf<Bitmap?>(null) }
 
-    // Cargar datos actuales
     LaunchedEffect(userId) {
         userId?.let {
             val doc = FirebaseFirestore.getInstance().collection("usuarios").document(it).get().await()
             whatsapp = doc.getString("whatsapp")
             telegram = doc.getString("telegram")
             gmail = doc.getString("gmail")
+
+            doc.getString("foto_google")?.let { url ->
+                val loader = ImageLoader(context)
+                val request = ImageRequest.Builder(context).data(url).allowHardware(false).build()
+                val result = (loader.execute(request) as? SuccessResult)?.drawable
+                googlePhoto = (result as? android.graphics.drawable.BitmapDrawable)?.bitmap
+            }
         }
     }
 
@@ -70,6 +80,16 @@ fun AccountsScreen(navController: NavController) {
         }
     }
 
+    fun eliminarCampo(campo: String) {
+        userId?.let {
+            val updates = hashMapOf<String, Any?>(campo to null)
+            FirebaseFirestore.getInstance().collection("usuarios").document(it).update(updates)
+        }
+        when (campo) {
+            "gmail" -> gmail = null
+        }
+    }
+
     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestEmail()
         .build()
@@ -77,6 +97,13 @@ fun AccountsScreen(navController: NavController) {
     val googleLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
+        if (gmail != null) {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar("Cuenta ya asociada")
+            }
+            return@rememberLauncherForActivityResult
+        }
+
         val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
         if (task.isSuccessful) {
             val account: GoogleSignInAccount? = task.result
@@ -85,12 +112,14 @@ fun AccountsScreen(navController: NavController) {
                 val firstName = fullName.split(" ").firstOrNull() ?: ""
                 val lastName = fullName.split(" ").drop(1).joinToString(" ")
                 val email = it.email ?: ""
+                val photoUrl = it.photoUrl?.toString() ?: ""
 
                 userId?.let { uid ->
                     val updates = mapOf(
                         "nombre" to firstName,
                         "apellido" to lastName,
-                        "gmail" to email
+                        "gmail" to email,
+                        "foto_google" to photoUrl
                     )
                     FirebaseFirestore.getInstance().collection("usuarios").document(uid)
                         .update(updates)
@@ -141,10 +170,28 @@ fun AccountsScreen(navController: NavController) {
                 showDialog = true
             }
 
-            BotonCuenta("Google", R.drawable.ic_gmail, gmail) {
-                val signInClient = GoogleSignIn.getClient(context, gso)
-                signInClient.signOut().addOnCompleteListener {
-                    googleLauncher.launch(signInClient.signInIntent)
+            BotonCuentaGoogle("Google", googlePhoto, gmail) {
+                if (gmail != null) {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Cuenta ya asociada")
+                    }
+                } else {
+                    val signInClient = GoogleSignIn.getClient(context, gso)
+                    signInClient.signOut().addOnCompleteListener {
+                        googleLauncher.launch(signInClient.signInIntent)
+                    }
+                }
+            }
+
+            if (gmail != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                TextButton(onClick = {
+                    eliminarCampo("gmail")
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Cuenta Google desvinculada")
+                    }
+                }) {
+                    Text("Desvincular cuenta")
                 }
             }
 
@@ -210,7 +257,7 @@ fun AccountsScreen(navController: NavController) {
                             }
 
                             val finalValue = when (tipoCuenta) {
-                                CuentaTipo.TELEGRAM -> if (inputValue.startsWith("@")) inputValue else "@$inputValue"
+                                CuentaTipo.TELEGRAM -> if (inputValue.startsWith("@")) inputValue else "@${inputValue}"
                                 CuentaTipo.WHATSAPP -> "+549$inputValue"
                                 else -> inputValue
                             }
@@ -253,6 +300,31 @@ fun BotonCuenta(nombre: String, iconResId: Int, valorActual: String?, onClick: (
             contentDescription = nombre,
             modifier = Modifier.size(48.dp)
         )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(nombre, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        valorActual?.let {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = it, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+fun BotonCuentaGoogle(nombre: String, imagen: Bitmap?, valorActual: String?, onClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .padding(vertical = 12.dp)
+            .clickable { onClick() }
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (imagen != null) {
+            Image(bitmap = imagen.asImageBitmap(), contentDescription = nombre, modifier = Modifier.size(48.dp))
+        } else {
+            Image(painter = painterResource(id = R.drawable.ic_gmail), contentDescription = nombre, modifier = Modifier.size(48.dp))
+        }
         Spacer(modifier = Modifier.height(8.dp))
         Text(nombre, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         valorActual?.let {

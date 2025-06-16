@@ -64,9 +64,15 @@ fun WelcomeScreen(navController: NavController) {
     LaunchedEffect(isLoggedIn) {
         welcomeViewModel.checkAuthToken(context)
 
+        if (!isLoggedIn && !hasNavigated) {
+            hasNavigated = true
+            navController.navigate("login") {
+                popUpTo("welcome") { inclusive = true }
+            }
+        }
+
         if (isLoggedIn && !hasNavigated) {
             hasNavigated = true
-
             val uid = FirebaseAuth.getInstance().currentUser?.uid
             if (uid != null) {
                 Firebase.firestore.collection("usuarios").document(uid)
@@ -79,6 +85,7 @@ fun WelcomeScreen(navController: NavController) {
             }
         }
     }
+
 
     FondoCelesteBackground {
         Scaffold(
@@ -167,62 +174,15 @@ fun WelcomeScreen(navController: NavController) {
                                     }
                                 }
                             }
-                        } else {
-                            Text("Lo que dicen nuestros usuarios:", style = MaterialTheme.typography.bodyLarge)
+                        }
 
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            LazyRow(
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                items(
-                                    listOf(
-                                        R.drawable.persona1,
-                                        R.drawable.persona2,
-                                        R.drawable.persona3
-                                    )
-                                ) { image ->
-                                    Card(
-                                        modifier = Modifier
-                                            .width(250.dp)
-                                            .height(300.dp),
-                                        shape = MaterialTheme.shapes.large
-                                    ) {
-                                        Image(
-                                            painter = painterResource(id = image),
-                                            contentDescription = "Usuario feliz",
-                                            modifier = Modifier.fillMaxSize()
-                                        )
-                                    }
-                                }
-                            }
 
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            Button(
-                                onClick = { navController.navigate("login") },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
-                                shape = MaterialTheme.shapes.large
-                            ) {
-                                Text("Iniciar Sesión")
-                            }
-
-                            OutlinedButton(
-                                onClick = { navController.navigate("register") },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
-                                shape = MaterialTheme.shapes.large
-                            ) {
-                                Text("Registrarse")
-                            }
                         }
                     }
                 }
             }
         }
-    }
 }
+

@@ -30,7 +30,7 @@ import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 import androidx.work.*
 import com.proyecto.Descuentosya.data.FirestoreUploader
 import com.proyecto.Descuentosya.data.FavoritosManager
-import java.util.Calendar
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
@@ -56,16 +56,13 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            DescuentosYaTheme {
-                MainApp(startDestination = startDestination)
-            }
+            MainApp(startDestination = startDestination)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
         }
 
-        // ✅ Solo programar notificaciones si el usuario las tiene activadas
         currentUser?.uid?.let { uid ->
             FirebaseFirestore.getInstance().collection("usuarios").document(uid)
                 .get()
@@ -84,7 +81,6 @@ class MainActivity : ComponentActivity() {
             .setRequiresBatteryNotLow(true)
             .build()
 
-        // Cancelar notificaciones anteriores para evitar duplicados
         WorkManager.getInstance(this).cancelAllWorkByTag("daily_notifications")
 
         scheduleNotificationAtHour(8, "Es un nuevo día, por lo tanto nuevos descuentos!", constraints, "morning_notification")
@@ -131,11 +127,6 @@ class MainActivity : ComponentActivity() {
             .build()
 
         WorkManager.getInstance(this).enqueue(workRequest)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        // FavoritosManager.limpiarFavoritos() // ← Si se desea limpiar al salir completamente
     }
 }
 
