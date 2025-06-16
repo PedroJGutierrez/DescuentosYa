@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application
         android:usesCleartextTraffic="true"
@@ -20,17 +22,20 @@
         android:theme="@style/Theme.DescuentosYa"
         tools:targetApi="31">
 
+        <!-- ✅ Clave de API para Google Maps -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCePVV5wQ5TxhxnThEmJRrGVPXtLtd3zh0" />
+
         <activity
             android:name=".MainActivity"
-        android:exported="true"
-        android:theme="@style/Theme.DescuentosYa">
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
-    </activity>
-
-
-</application>
+            android:exported="true"
+            android:theme="@style/Theme.DescuentosYa">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
 
     </manifest>

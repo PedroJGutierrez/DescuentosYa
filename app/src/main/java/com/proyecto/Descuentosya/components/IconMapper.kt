@@ -20,7 +20,7 @@ object IconMapper {
         "ShoppingCart" to "Supermercados",
         "ReceiptLong" to "Servicios",
         "CreditCard" to "Sube",
-        "ShowChart" to "Intereses"
+        "ShowChart" to "Rendimientos"
     )
 
     fun getIconByName(name: String): ImageVector {
@@ -29,18 +29,23 @@ object IconMapper {
     }
 
     fun getCategoryByIconName(iconName: String): String {
-        // CORREGIDO: Limpiar el prefijo "Filled." igual que en getIconByName
         val cleanName = iconName.removePrefix("Filled.").trim()
         return categoryMap[cleanName] ?: "Otros"
     }
 
     fun generateDescriptionForIcon(iconName: String, hasDiscount: Boolean): String {
-        val category = getCategoryByIconName(iconName)
-        return if (hasDiscount) {
-            val porcentaje = listOf(5, 10, 15, 20, 25, 30, 40).random()
-            "Hasta $porcentaje% de descuento en $category"
+        val cleanName = iconName.removePrefix("Filled.").trim()
+        return if (cleanName == "ShowChart") {
+            val porcentaje = (5..30).random()
+            "$porcentaje% de rendimientos anuales con esta billetera."
         } else {
-            "Sin descuentos en $category"
+            val category = getCategoryByIconName(iconName)
+            if (hasDiscount) {
+                val porcentaje = listOf(5, 10, 15, 20, 25, 30, 40).random()
+                "Hasta $porcentaje% de descuento en $category"
+            } else {
+                "Sin descuentos en $category"
+            }
         }
     }
 

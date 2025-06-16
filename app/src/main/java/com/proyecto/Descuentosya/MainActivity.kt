@@ -22,6 +22,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.proyecto.Descuentosya.notification.NotificationWorker
 import com.proyecto.Descuentosya.ui.navigation.NavGraph
 import com.proyecto.Descuentosya.ui.theme.DescuentosYaTheme
@@ -29,7 +30,7 @@ import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 import androidx.work.*
 import com.proyecto.Descuentosya.data.FirestoreUploader
 import com.proyecto.Descuentosya.data.FavoritosManager
-import java.util.Calendar
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
@@ -40,28 +41,39 @@ class MainActivity : ComponentActivity() {
         FirestoreUploader.guardarBeneficiosSiEsNuevoDia(this)
 
         val currentUser = FirebaseAuth.getInstance().currentUser
-        val startDestination = if (currentUser != null && currentUser.isEmailVerified) {
-            // Si el usuario está autenticado, cargar sus favoritos
-            FavoritosManager.cargarFavoritosDesdeFirestore()
-            "welcome"
-        } else {
-            // Si no está autenticado, limpiar favoritos
-            FavoritosManager.limpiarFavoritos()
-            "login"
+        val desdeNotificacion = intent?.getBooleanExtra("desde_notificacion", false) ?: false
+
+        val startDestination = when {
+            desdeNotificacion -> "welcome"
+            currentUser != null && currentUser.isEmailVerified -> {
+                FavoritosManager.cargarFavoritosDesdeFirestore()
+                "welcome"
+            }
+            else -> {
+                FavoritosManager.limpiarFavoritos()
+                "login"
+            }
         }
 
         setContent {
-            DescuentosYaTheme {
-                MainApp(startDestination = startDestination)
-            }
+            MainApp(startDestination = startDestination)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
         }
 
-        scheduleNotifications()
-        sendImmediateNotification()
+        currentUser?.uid?.let { uid ->
+            FirebaseFirestore.getInstance().collection("usuarios").document(uid)
+                .get()
+                .addOnSuccessListener { doc ->
+                    val notificacionesActivas = doc.getBoolean("notificacionesActivas") ?: true
+                    if (notificacionesActivas) {
+                        scheduleNotifications()
+                        sendImmediateNotification()
+                    }
+                }
+        }
     }
 
     private fun scheduleNotifications() {
@@ -69,7 +81,6 @@ class MainActivity : ComponentActivity() {
             .setRequiresBatteryNotLow(true)
             .build()
 
-        // Cancelar notificaciones anteriores para evitar duplicados
         WorkManager.getInstance(this).cancelAllWorkByTag("daily_notifications")
 
         scheduleNotificationAtHour(8, "Es un nuevo día, por lo tanto nuevos descuentos!", constraints, "morning_notification")
@@ -116,12 +127,6 @@ class MainActivity : ComponentActivity() {
             .build()
 
         WorkManager.getInstance(this).enqueue(workRequest)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        // Limpiar favoritos al cerrar la app si es necesario
-        // FavoritosManager.limpiarFavoritos()
     }
 }
 
