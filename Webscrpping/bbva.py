@@ -1,57 +1,67 @@
-import requests
-from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
 from google.cloud import firestore
 import os
+import time
 
-
+# FIRESTORE
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "serviceAccount.json"
 db = firestore.Client()
-collection_name = "bbva_benefits"
 
+# Mapeo de íconos (podés ajustarlo)
+ICON_MAP = {
+    "Cine": "Movie",
+    "Indumentaria": "Checkroom",
+    "Deportes": "SportsSoccer",
+    "Tecnología": "Devices",
+    "Comida": "Fastfood",
+    "Supermercado": "ShoppingCart",
+    "Sin categoría": "Info"
+}
 
 def scrape_benefits():
-    url = "https://www.bbva.com.ar/beneficios/beneficios"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-    }
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--disable-gpu')
 
-    response = requests.get(url, headers=headers)
+    from selenium.webdriver.chrome.service import Service
 
-    if response.status_code != 200:
-        raise Exception(f"Error al obtener la página: {response.status_code}")
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=options)
+    driver.get("https://www.bbva.com.ar/beneficios/beneficios")
+    time.sleep(5)  # Esperar que cargue JS (ajustá si es necesario)
 
-    soup = BeautifulSoup(response.text, "html.parser")
-    benefits = soup.select("div.benefits__item")
+    items = driver.find_elements(By.CLASS_NAME, "card-promo")  # detectado por inspección en la web
 
-    if not benefits:
-        raise Exception("No se encontraron beneficios en la página.")
+    benefits = []
+    for item in items:
+        try:
+            descripcion = item.find_element(By.CLASS_NAME, "card-title").text
+            detalle = item.find_element(By.CLASS_NAME, "card-subtitle").text
+            categoria = "Comida" if "restaurante" in descripcion.lower() else "Sin categoría"
+            icon = ICON_MAP.get(categoria, "Info")
 
-    extracted = []
+            benefits.append({
+                "descripcion": f"{descripcion} - {detalle}",
+                "disponible": True,
+                "icon": icon
+            })
+        except:
+            continue
 
-    for benefit in benefits:
-        title = benefit.select_one(".benefits__title")
-        category = benefit.select_one(".benefits__category")
+    driver.quit()
+    return benefits
 
-        benefit_data = {
-            "title": title.text.strip() if title else "Sin título",
-            "category": category.text.strip() if category else "Sin categoría"
-        }
-
-        extracted.append(benefit_data)
-
-    return extracted
-
-
-def save_benefits_to_firestore(benefits):
-    for benefit in benefits:
-        doc_ref = db.collection(collection_name).document()
-        doc_ref.set(benefit)
-        print(f"Beneficio guardado: {benefit['title']} (ID: {doc_ref.id})")
+def update_firestore_bbva(benefits):
+    doc = db.collection("billeteras").document("BBVA")
+    doc.set({"beneficios": benefits})
+    print(f"✅ {len(benefits)} beneficios actualizados en billeteras/BBVA.")
 
 if __name__ == "__main__":
     try:
-        benefits = scrape_benefits()
-        save_benefits_to_firestore(benefits)
+        beneficios = scrape_benefits()
+        update_firestore_bbva(beneficios)
     except Exception as e:
-        print(f"Error: {e}")
-
+        print(f"❌ Error: {e}")
