@@ -114,15 +114,20 @@ fun AccountsScreen(navController: NavController) {
                 val email = it.email ?: ""
                 val photoUrl = it.photoUrl?.toString() ?: ""
 
-                userId?.let { uid ->
+                if (userId != null) {
                     val updates = mapOf(
                         "nombre" to firstName,
                         "apellido" to lastName,
                         "gmail" to email,
                         "foto_google" to photoUrl
                     )
-                    FirebaseFirestore.getInstance().collection("usuarios").document(uid)
+                    FirebaseFirestore.getInstance().collection("usuarios").document(userId)
                         .update(updates)
+                        .addOnSuccessListener {
+                            coroutineScope.launch {
+                                googlePhoto = cargarImagenDesdeUrl(context, photoUrl)
+                            }
+                        }
                 }
 
                 gmail = email
@@ -338,4 +343,17 @@ fun guardarCampoFirestore(userId: String?, campo: String, valor: String) {
     userId ?: return
     val db = FirebaseFirestore.getInstance()
     db.collection("usuarios").document(userId).update(campo, valor)
+}
+suspend fun cargarImagenDesdeUrl(context: android.content.Context, url: String): Bitmap? {
+    return try {
+        val loader = ImageLoader(context)
+        val request = ImageRequest.Builder(context)
+            .data(url)
+            .allowHardware(false)
+            .build()
+        val result = (loader.execute(request) as? SuccessResult)?.drawable
+        (result as? android.graphics.drawable.BitmapDrawable)?.bitmap
+    } catch (e: Exception) {
+        null
+    }
 }

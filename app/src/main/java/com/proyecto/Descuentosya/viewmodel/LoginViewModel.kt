@@ -84,13 +84,20 @@ class LoginViewModel : ViewModel() {
 
     fun resendVerificationEmail() {
         val user = auth.currentUser
-        user?.sendEmailVerification()
-            ?.addOnSuccessListener {
-                message.value = "Correo reenviado"
+        user?.reload()?.addOnCompleteListener {
+            if (user != null && !user.isEmailVerified) {
+                user.sendEmailVerification()
+                    .addOnSuccessListener {
+                        message.value = "Correo reenviado correctamente"
+                        showResendVerification.value = false
+                    }
+                    .addOnFailureListener {
+                        errorMessage.value = "Error al reenviar correo: ${it.message}"
+                    }
+            } else {
+                errorMessage.value = "Este usuario ya verificó su correo o no está disponible"
             }
-            ?.addOnFailureListener {
-                errorMessage.value = "Error: ${it.message}"
-            }
+        }
     }
 
     fun handleGoogleSignIn(account: GoogleSignInAccount, context: Context, onSuccess: () -> Unit) {
