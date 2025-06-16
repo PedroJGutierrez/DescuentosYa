@@ -8,6 +8,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.proyecto.Descuentosya.home.BilleterasScreen
 import com.proyecto.Descuentosya.home.BilleteraDetailScreen
+import com.proyecto.Descuentosya.home.MapaScreen
+import com.proyecto.Descuentosya.home.NearbyCinemasMapScreen
+import com.proyecto.Descuentosya.home.NearbyRestaurantsMapScreen
+import com.proyecto.Descuentosya.home.NearbySupermarketsMapScreen
 import com.proyecto.Descuentosya.home.WelcomeScreen
 import com.proyecto.Descuentosya.login.*
 import com.proyecto.Descuentosya.profile.AppearanceScreen
@@ -64,6 +68,17 @@ fun NavGraph(
         composable("accounts") {
             AccountsScreen(navController)
         }
+        composable("mapa")//este es para restaurantes map
+        {
+            NearbyRestaurantsMapScreen()
+        }
+        composable("mapa_cine") {
+            NearbyCinemasMapScreen()
+        }
+        composable("mapa_super") {
+            NearbySupermarketsMapScreen()
+        }
+
         composable("security") { SecurityScreen(navController) }
         // NUEVA PANTALLA
         composable("billetera_detalle/{nombre}") { backStackEntry ->

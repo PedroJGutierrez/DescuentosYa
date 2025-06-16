@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -116,23 +117,55 @@ fun BilleteraDetailScreen(
                                     )
                                 }
 
-                                // 🔁 Botón compartir solo si está disponible
                                 if (beneficio.disponible) {
-                                    IconButton(onClick = {
-                                        val mensaje =
-                                            "¡Mirá este descuento de ${beneficio.descripcion} con  ${billetera.nombre}! Mira mas descuentos asi en DescuentosYa!! >> 📲"
-                                        val intent = Intent(Intent.ACTION_SEND).apply {
-                                            type = "text/plain"
-                                            putExtra(Intent.EXTRA_TEXT, mensaje)
+                                    val categoria = IconMapper.getCategoryByIconName(beneficio.iconName)
+                                    val rutaMapa = when (categoria) {
+                                        "Comida rápida" -> "mapa"
+                                        "Cine" -> "mapa_cine"
+                                        "Supermercados" -> "mapa_super"
+                                        else -> null
+                                    }
+                                    rutaMapa?.let {
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            IconButton(onClick = {
+                                                navController.navigate(it)
+                                            }) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Search,
+                                                    contentDescription = "Buscar cercanos",
+                                                    tint = Color.Black
+                                                )
+                                            }
+                                            Text(
+                                                text = "Buscar cercanos",
+                                                style = MaterialTheme.typography.labelSmall
+                                            )
                                         }
-                                        context.startActivity(
-                                            Intent.createChooser(intent, "Compartir beneficio con...")
-                                        )
-                                    }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Share,
-                                            contentDescription = "Compartir beneficio",
-                                            tint = Color.Black
+                                    }
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        IconButton(onClick = {
+                                            val mensaje =
+                                                "¡Mirá este descuento de ${beneficio.descripcion} con  ${billetera.nombre}! Mira más descuentos así en DescuentosYa!! >> 📲"
+                                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                                type = "text/plain"
+                                                putExtra(Intent.EXTRA_TEXT, mensaje)
+                                            }
+                                            context.startActivity(
+                                                Intent.createChooser(intent, "Compartir beneficio con...")
+                                            )
+                                        }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Share,
+                                                contentDescription = "Compartir beneficio",
+                                                tint = Color.Black
+                                            )
+                                        }
+                                        Text(
+                                            text = "Compartir",
+                                            style = MaterialTheme.typography.labelSmall
                                         )
                                     }
                                 }
