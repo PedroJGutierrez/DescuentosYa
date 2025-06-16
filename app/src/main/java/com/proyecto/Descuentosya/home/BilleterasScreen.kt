@@ -32,7 +32,7 @@ fun BilleterasScreen(navController: NavController, viewModel: BilleterasViewMode
     val showSnackbar = remember { mutableStateOf(false) }
     val mensajeSnackbar = remember { mutableStateOf("") }
 
-    var filtroAbierto by remember { mutableStateOf(false) }
+
 
     val favoritosCargados = FavoritosManager.favoritosCargados
     val billeteras by viewModel.billeteras.collectAsState()
@@ -75,9 +75,7 @@ fun BilleterasScreen(navController: NavController, viewModel: BilleterasViewMode
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text("Mis Billeteras")
-                            IconButton(onClick = { filtroAbierto = !filtroAbierto }) {
-                                Icon(Icons.Default.FilterList, contentDescription = "Filtrar")
-                            }
+
                         }
                     },
                     navigationIcon = {
@@ -98,20 +96,7 @@ fun BilleterasScreen(navController: NavController, viewModel: BilleterasViewMode
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (filtroAbierto) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.cardElevation(4.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(8.dp)) {
-                            billeterasOrdenadas.forEach { billetera ->
-                                Text(text = "• ${billetera.nombre}", style = MaterialTheme.typography.bodyMedium)
-                            }
-                        }
-                    }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
 
                 Text("Explora tus billeteras:", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(16.dp))

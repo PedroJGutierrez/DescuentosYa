@@ -62,9 +62,17 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.6.1")
     implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("com.google.firebase:firebase-analytics")
-
+    implementation(libs.google.auth)
     implementation(libs.work.runtime.ktx)
     implementation(libs.datastore.preferences)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation(libs.maps)
+    implementation(libs.location)
+    implementation("com.google.android.libraries.places:places:3.4.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+    implementation("org.json:json:20231013")
 }

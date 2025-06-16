@@ -18,15 +18,20 @@ object BilleterasRepository {
 
             val beneficios = beneficiosData.mapNotNull { map ->
                 val iconName = map["icon"] as? String ?: return@mapNotNull null
-                val disponible = when (val raw = map["disponible"]) {
+
+                val isInteres = iconName == "ShowChart"
+                val disponible = if (isInteres) true else when (val raw = map["disponible"]) {
                     is Boolean -> raw
                     is String -> raw.equals("true", ignoreCase = true)
                     else -> false
                 }
 
-                // Generar descripción basada en el icono y disponibilidad
-                val descripcion = map["descripcion"] as? String
-                    ?: IconMapper.generateDescriptionForIcon(iconName, disponible)
+                val descripcion = if (isInteres) {
+                    IconMapper.generateDescriptionForIcon(iconName, true)
+                } else {
+                    map["descripcion"] as? String
+                        ?: IconMapper.generateDescriptionForIcon(iconName, disponible)
+                }
 
                 val icon = IconMapper.getIconByName(iconName)
 

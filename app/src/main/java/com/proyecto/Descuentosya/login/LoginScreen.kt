@@ -1,23 +1,30 @@
 package com.proyecto.Descuentosya.login
 
-
+import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.Scope
 import com.proyecto.Descuentosya.viewmodel.LoginViewModel
-
+import com.proyecto.DescuentosYa.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,6 +36,33 @@ fun LoginScreen(navController: NavController) {
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
+    // Google Sign-In
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.result
+            loginViewModel.handleGoogleSignIn(account, context) {
+                navController.navigate("welcome") {
+                    popUpTo("welcome") { inclusive = true }
+                }
+            }
+        } catch (e: Exception) {
+            loginViewModel.errorMessage.value = "Error al iniciar sesión con Google"
+        }
+    }
+
+    val googleSignInClient = remember {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(context.getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+        GoogleSignIn.getClient(context, gso).apply {
+            signOut() // <- Esto fuerza que siempre se pregunte qué cuenta usar
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -38,7 +72,6 @@ fun LoginScreen(navController: NavController) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
                     }
                 }
-
             )
         }
     ) { paddingValues ->
@@ -91,6 +124,27 @@ fun LoginScreen(navController: NavController) {
                 )
             }
 
+            // 🔽 Botón Google Sign-In mejorado
+            Button(
+                onClick = {
+                    val signInIntent = googleSignInClient.signInIntent
+                    launcher.launch(signInIntent)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                shape = MaterialTheme.shapes.large
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_gmail),
+                    contentDescription = "Logo Google",
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Iniciar sesión con Google")
+            }
+
+            // 🔽 Botón normal
             Button(
                 onClick = {
                     loginViewModel.login(email, password, context) {
@@ -109,9 +163,7 @@ fun LoginScreen(navController: NavController) {
             }
 
             TextButton(
-                onClick = {
-                    navController.navigate("forgot_password")
-                },
+                onClick = { navController.navigate("forgot_password") },
                 modifier = Modifier.align(Alignment.End)
             ) {
                 Text("¿Olvidaste tu contraseña?")

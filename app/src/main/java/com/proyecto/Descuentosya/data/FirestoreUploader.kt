@@ -5,6 +5,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.google.firebase.firestore.FirebaseFirestore
 import com.proyecto.Descuentosya.components.DataManager
+import com.proyecto.Descuentosya.components.IconMapper
 import java.time.LocalDate
 
 object FirestoreUploader {
@@ -22,9 +23,16 @@ object FirestoreUploader {
         DataManager.billeteras.forEach { billetera ->
             val beneficiosMapeados = billetera.beneficios.map { beneficio ->
                 val iconName = beneficio.iconName.replace("Filled.", "")
+                val disponible = if (iconName == "ShowChart") true else beneficio.disponible
+                val descripcion = if (iconName == "ShowChart") {
+                    IconMapper.generateDescriptionForIcon(iconName, true)
+                } else {
+                    beneficio.descripcion
+                }
+
                 mapOf(
-                    "descripcion" to beneficio.descripcion,
-                    "disponible" to beneficio.disponible, // CORREGIDO: Usar directamente el campo disponible
+                    "descripcion" to descripcion,
+                    "disponible" to disponible,
                     "icon" to iconName
                 )
             }
