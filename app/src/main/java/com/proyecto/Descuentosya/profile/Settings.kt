@@ -68,22 +68,24 @@ fun SettingsScreen(navController: NavController) {
                     val themeViewModel: ThemeViewModel = viewModel()
                     val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
 
-                    IconButton(onClick = { themeViewModel.setDarkTheme(!isDarkTheme) }) {
-                        Box(
+                    IconButton(
+                        onClick = { themeViewModel.setDarkTheme(!isDarkTheme) },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape) // Redondea y recorta la imagen
+                            .background(Color.Gray.copy(alpha = 0.15f), shape = CircleShape)
+                            .padding(8.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(
+                                id = if (isDarkTheme) R.drawable.sol else R.drawable.luna
+                            ),
+                            contentDescription = "Cambiar tema",
                             modifier = Modifier
-                                .size(36.dp)
-                                .background(Color.Gray.copy(alpha = 0.2f), shape = CircleShape)
-                                .padding(6.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(
-                                    id = if (isDarkTheme) R.drawable.luna_mitad else R.drawable.luna_blanca
-                                ),
-                                contentDescription = "Cambiar tema",
-                                tint = Color.White
-                            )
-                        }
+                                .size(24.dp)
+                                .clip(CircleShape), // Asegura que incluso el ícono se recorte si tiene bordes
+                            tint = Color.Unspecified // Mantiene los colores reales del PNG
+                        )
                     }
 
                     Spacer(modifier = Modifier.width(4.dp))
