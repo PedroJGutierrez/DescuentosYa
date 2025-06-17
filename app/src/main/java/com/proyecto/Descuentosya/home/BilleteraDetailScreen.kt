@@ -21,9 +21,22 @@ import com.proyecto.Descuentosya.components.Billetera
 import com.proyecto.Descuentosya.components.IconMapper
 import com.proyecto.Descuentosya.ui.theme.FondoCelesteBackground
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun BilleteraDetailScreen(
+    billetera: Billetera,
+    navController: NavController
+) {
+    if (billetera.nombre.lowercase().contains("ciudad")) {
+        BancoCiudadDetailScreen(navController)
+    } else {
+        BilleteraDetailDefaultScreen(billetera, navController)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BilleteraDetailDefaultScreen(
     billetera: Billetera,
     navController: NavController
 ) {

@@ -43,8 +43,9 @@ class MainActivity : ComponentActivity() {
         val currentUser = FirebaseAuth.getInstance().currentUser
         val desdeNotificacion = intent?.getBooleanExtra("desde_notificacion", false) ?: false
 
+        val billeteraNombre = intent?.getStringExtra("billetera_nombre")
         val startDestination = when {
-            desdeNotificacion -> "welcome"
+            desdeNotificacion && !billeteraNombre.isNullOrBlank() -> "billetera_detalle/${billeteraNombre}"
             currentUser != null && currentUser.isEmailVerified -> {
                 FavoritosManager.cargarFavoritosDesdeFirestore()
                 "welcome"

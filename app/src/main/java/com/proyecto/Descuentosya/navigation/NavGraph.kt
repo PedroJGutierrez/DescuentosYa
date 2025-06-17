@@ -79,13 +79,17 @@ fun NavGraph(
             NearbySupermarketsMapScreen()
         }
 
+        composable("mapa_comercio/{nombre}") { backStackEntry ->
+            val nombre = backStackEntry.arguments?.getString("nombre") ?: ""
+            MapaScreen(nombreComercio = nombre)
+        }
         composable("security") { SecurityScreen(navController) }
         // NUEVA PANTALLA
         composable("billetera_detalle/{nombre}") { backStackEntry ->
             val billeteraNombre = backStackEntry.arguments?.getString("nombre") ?: ""
             val viewModel: BilleterasViewModel = viewModel()
             val billeteras = viewModel.billeteras.collectAsState().value
-            val billetera = billeteras.find { it.nombre == billeteraNombre }
+            val billetera = billeteras.find { it.nombre.equals(billeteraNombre, ignoreCase = true) }
 
             billetera?.let {
                 BilleteraDetailScreen(billetera = it, navController = navController)

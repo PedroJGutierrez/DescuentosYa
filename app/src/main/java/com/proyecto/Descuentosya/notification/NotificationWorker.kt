@@ -20,8 +20,7 @@ class NotificationWorker(context: Context, workerParams: WorkerParameters) : Wor
         crearCanalDeNotificacion(applicationContext)
 
         runBlocking {
-            val userId = FirebaseAuth.getInstance().currentUser?.uid
-            if (userId == null) return@runBlocking
+            val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@runBlocking
 
             val db = FirebaseFirestore.getInstance()
             val userSnapshot = db.collection("usuarios").document(userId).get().await()
@@ -44,6 +43,14 @@ class NotificationWorker(context: Context, workerParams: WorkerParameters) : Wor
 
                 if (beneficiosFiltrados.isEmpty()) continue
 
+                val isBancoCiudad = billeteraId.equals("banco ciudad", ignoreCase = true)
+                val titulo = if (isBancoCiudad) "Banco Ciudad" else "BILLETERA $billeteraId"
+                val mensaje = if (isBancoCiudad) {
+                    "Mirá los beneficios que el Banco Ciudad tiene para vos!"
+                } else {
+                    "Descuentos disponibles: ${beneficiosFiltrados.size}"
+                }
+
                 val resumen = beneficiosFiltrados.joinToString("\n") { beneficio ->
                     val iconName = beneficio["icon"]?.toString() ?: ""
                     val descripcion = beneficio["descripcion"]?.toString() ?: "Descuento disponible"
@@ -54,6 +61,7 @@ class NotificationWorker(context: Context, workerParams: WorkerParameters) : Wor
                 val intent = Intent(applicationContext, Class.forName("com.proyecto.DescuentosYa.MainActivity")).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     putExtra("desde_notificacion", true)
+                    putExtra("billetera_nombre", billeteraId)
                 }
 
                 val pendingIntent = PendingIntent.getActivity(
@@ -64,8 +72,8 @@ class NotificationWorker(context: Context, workerParams: WorkerParameters) : Wor
                 )
 
                 val notification = NotificationCompat.Builder(applicationContext, "default_channel")
-                    .setContentTitle("BILLETERA $billeteraId")
-                    .setContentText("Descuentos disponibles: ${beneficiosFiltrados.size}")
+                    .setContentTitle(titulo)
+                    .setContentText(mensaje)
                     .setStyle(NotificationCompat.BigTextStyle().bigText("Descuentos en:\n$resumen"))
                     .setSmallIcon(R.drawable.ic_launcher_hdpi)
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -96,4 +104,3 @@ class NotificationWorker(context: Context, workerParams: WorkerParameters) : Wor
         }
     }
 }
-

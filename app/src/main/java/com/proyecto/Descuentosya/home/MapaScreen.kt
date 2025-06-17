@@ -24,7 +24,7 @@ import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.*
 
 @Composable
-fun MapaScreen() {
+fun MapaScreen(nombreComercio: String = "") {
     val context = LocalContext.current
     var mapView: MapView? = remember { null }
 
@@ -56,12 +56,11 @@ fun MapaScreen() {
                     googleMap.uiSettings.isMyLocationButtonEnabled = true
                     googleMap.isMyLocationEnabled = true
 
-                    // Centrar en Buenos Aires y buscar restaurantes
                     val latLng = LatLng(-34.6037, -58.3816)
-                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 14f))
 
                     if (!Places.isInitialized()) {
-                        Places.initialize(ctx, "TU_API_KEY")
+                        Places.initialize(ctx, "AIzaSyCePVV5wQ5TxhxnThEmJRrGVPXtLtd3zh0") // 🔐 Asegurate de poner tu API key
                     }
 
                     val placesClient = Places.createClient(ctx)
@@ -72,9 +71,8 @@ fun MapaScreen() {
                     placesClient.findCurrentPlace(request)
                         .addOnSuccessListener { response ->
                             response.placeLikelihoods.forEach { likelihood ->
-                                if (likelihood.place.name?.contains("Restaurante", ignoreCase = true) == true ||
-                                    likelihood.place.name?.contains("Burger", ignoreCase = true) == true ||
-                                    likelihood.place.name?.contains("Pizza", ignoreCase = true) == true) {
+                                val nombre = likelihood.place.name?.lowercase() ?: ""
+                                if (nombreComercio.lowercase() in nombre) {
                                     likelihood.place.latLng?.let {
                                         googleMap.addMarker(MarkerOptions().position(it).title(likelihood.place.name))
                                     }
