@@ -37,6 +37,7 @@ fun getBackgroundForWallet(nombre: String): Int {
         "banco santander"-> R.drawable.santander
         "banco macro"    -> R.drawable.macro
         "banco hsbc"     -> R.drawable.hsbc
+        "modo"     -> R.drawable.modo
         else             -> R.drawable.banner
     }
 }

@@ -20,15 +20,14 @@ import androidx.navigation.NavController
 import com.proyecto.Descuentosya.components.Billetera
 import com.proyecto.Descuentosya.components.IconMapper
 import com.proyecto.Descuentosya.ui.theme.FondoCelesteBackground
-
+import com.proyecto.Descuentosya.home.BilleteraModoDetailScreen
 
 @Composable
-fun BilleteraDetailScreen(
-    billetera: Billetera,
-    navController: NavController
-) {
-    if (billetera.nombre.lowercase().contains("ciudad")) {
+fun BilleteraDetailScreen(billetera: Billetera, navController: NavController) {
+    if (billetera.nombre.equals("Banco Ciudad", ignoreCase = true)) {
         BancoCiudadDetailScreen(navController)
+    } else if (billetera.nombre.equals("MODO", ignoreCase = true)) {
+        BilleteraModoDetailScreen(navController)
     } else {
         BilleteraDetailDefaultScreen(billetera, navController)
     }
