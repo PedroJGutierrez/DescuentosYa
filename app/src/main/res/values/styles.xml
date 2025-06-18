@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema Launcher (general app) -->
+    <style name="Theme.DescuentosYa.Launcher" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Aquí poné el fondo que quieras para la app completa -->
+        <item name="android:windowBackground">@android:color/white</item>
+        <!-- Otros estilos para la app -->
+    </style>
+
+    <!-- Tema Splash -->
+    <style name="Theme.DescuentosYa.Splash" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:windowAnimationStyle">@style/SplashWindowAnimation</item>
+    </style>
+
+    <style name="SplashWindowAnimation" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:activityOpenExitAnimation">@android:anim/fade_out</item>
+    </style>
+</resources>
