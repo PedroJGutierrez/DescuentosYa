@@ -87,4 +87,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
     implementation("org.json:json:20231013")
+    implementation("com.github.LottieFiles:dotlottie-android:0.8.0")
+    implementation ("com.airbnb.android:lottie-compose:6.4.0")
+
 }

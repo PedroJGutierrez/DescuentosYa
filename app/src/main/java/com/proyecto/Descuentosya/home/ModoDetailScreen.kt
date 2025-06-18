@@ -16,11 +16,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.firestore.FirebaseFirestore
 import com.proyecto.Descuentosya.data.BeneficioScrappeado
-
+import com.proyecto.Descuentosya.ui.theme.*
+import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,6 +30,14 @@ fun BilleteraModoDetailScreen(navController: NavController) {
     val firestore = FirebaseFirestore.getInstance()
     val beneficios = remember { mutableStateListOf<BeneficioScrappeado>() }
     val context = LocalContext.current
+    val themeViewModel: ThemeViewModel = viewModel()
+    val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
+
+    val fondo = if (isDarkTheme) FondoOscuro else FondoClaro
+    val textoPrincipal = if (isDarkTheme) TextoOscuro else TextoClaro
+    val textoSecundario = if (isDarkTheme) TextoOscuroSecundario else TextoClaroSecundario
+    val cardBackground = if (isDarkTheme) SuperficieOscura else SuperficieClara
+    val primario = Primario
 
     LaunchedEffect(Unit) {
         firestore.collection("benefits_modo")
@@ -57,15 +67,16 @@ fun BilleteraModoDetailScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("MODO", color = Color.Black) },
+                title = { Text("MODO", color = textoPrincipal) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.Black)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = textoPrincipal)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = fondo)
             )
-        }
+        },
+        containerColor = fondo
     ) { padding ->
         LazyColumn(
             contentPadding = padding,
@@ -79,7 +90,7 @@ fun BilleteraModoDetailScreen(navController: NavController) {
                     Text(
                         text = categoria.uppercase(),
                         style = MaterialTheme.typography.titleSmall,
-                        color = Color(0xFF6A5AE0),
+                        color = primario,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
@@ -88,7 +99,7 @@ fun BilleteraModoDetailScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 100.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        colors = CardDefaults.cardColors(containerColor = cardBackground),
                         elevation = CardDefaults.cardElevation(4.dp)
                     ) {
                         Row(
@@ -108,11 +119,12 @@ fun BilleteraModoDetailScreen(navController: NavController) {
                                 )
                             }
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(text = beneficio.title, style = MaterialTheme.typography.bodyMedium)
+                                Text(text = beneficio.title, style = MaterialTheme.typography.bodyMedium, color = textoPrincipal)
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = beneficio.description,
                                     style = MaterialTheme.typography.bodySmall,
+                                    color = textoSecundario,
                                     maxLines = 3
                                 )
                                 if (beneficio.conditions.isNotEmpty()) {
@@ -120,7 +132,7 @@ fun BilleteraModoDetailScreen(navController: NavController) {
                                     Text(
                                         text = "Condiciones: ${beneficio.conditions}",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = Color.Gray
+                                        color = textoSecundario
                                     )
                                 }
                             }
@@ -133,7 +145,7 @@ fun BilleteraModoDetailScreen(navController: NavController) {
                                 }
                                 context.startActivity(Intent.createChooser(intent, "Compartir beneficio"))
                             }) {
-                                Icon(Icons.Default.Share, contentDescription = "Compartir", tint = Color.Black)
+                                Icon(Icons.Default.Share, contentDescription = "Compartir", tint = primario)
                             }
                         }
                     }
