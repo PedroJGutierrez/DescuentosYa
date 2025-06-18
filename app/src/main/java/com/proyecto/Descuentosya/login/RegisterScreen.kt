@@ -16,6 +16,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.proyecto.Descuentosya.ui.theme.Primario
+import com.proyecto.Descuentosya.ui.theme.SobrePrimarioClaro
+import com.proyecto.Descuentosya.ui.theme.TextoClaro
 
 import com.proyecto.Descuentosya.viewmodel.RegisterViewModel
 
@@ -34,12 +37,15 @@ fun RegisterScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Registrarse") },
+                title = { Text("Registrarse", color = SobrePrimarioClaro) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = SobrePrimarioClaro)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.mediumTopAppBarColors(
+                    containerColor = Primario
+                )
             )
         }
     ) { paddingValues ->
@@ -51,7 +57,11 @@ fun RegisterScreen(navController: NavController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Crea tu cuenta", style = MaterialTheme.typography.headlineMedium)
+            Text(
+                "Crea tu cuenta",
+                style = MaterialTheme.typography.headlineMedium,
+                color = TextoClaro
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -62,7 +72,15 @@ fun RegisterScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                shape = MaterialTheme.shapes.medium
+                shape = MaterialTheme.shapes.medium,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Primario,
+                    unfocusedBorderColor = TextoClaro.copy(alpha = 0.3f),
+                    focusedLabelColor = Primario,
+                    cursorColor = Primario,
+                    focusedTextColor = TextoClaro,
+                    unfocusedTextColor = TextoClaro
+                )
             )
 
             OutlinedTextField(
@@ -79,7 +97,15 @@ fun RegisterScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                shape = MaterialTheme.shapes.medium
+                shape = MaterialTheme.shapes.medium,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Primario,
+                    unfocusedBorderColor = TextoClaro.copy(alpha = 0.3f),
+                    focusedLabelColor = Primario,
+                    cursorColor = Primario,
+                    focusedTextColor = TextoClaro,
+                    unfocusedTextColor = TextoClaro
+                )
             )
 
             OutlinedTextField(
@@ -96,7 +122,15 @@ fun RegisterScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                shape = MaterialTheme.shapes.medium
+                shape = MaterialTheme.shapes.medium,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Primario,
+                    unfocusedBorderColor = TextoClaro.copy(alpha = 0.3f),
+                    focusedLabelColor = Primario,
+                    cursorColor = Primario,
+                    focusedTextColor = TextoClaro,
+                    unfocusedTextColor = TextoClaro
+                )
             )
 
             Button(
@@ -115,27 +149,27 @@ fun RegisterScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 16.dp),
-                shape = MaterialTheme.shapes.large
+                shape = MaterialTheme.shapes.large,
+                colors = ButtonDefaults.buttonColors(containerColor = Primario, contentColor = SobrePrimarioClaro)
             ) {
                 Text(if (registerViewModel.isLoading.value) "Registrando..." else "Registrarse")
             }
 
-            registerViewModel.errorMessage.value?.let {
-                Text(it, color = MaterialTheme.colorScheme.error)
+            registerViewModel.errorMessage.value?.let { errorMsg ->
+                Text(errorMsg, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 8.dp))
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(registerViewModel.message.value)
+            Text(registerViewModel.message.value, color = TextoClaro)
 
             Spacer(modifier = Modifier.height(16.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically // Asegura que estén alineados verticalmente en el centro
             ) {
-                Text("¿Ya tienes cuenta? ")
+                Text("¿Ya tienes cuenta? ", color = TextoClaro)
                 TextButton(onClick = { navController.navigate("login") }) {
-                    Text("Inicia sesión")
+                    Text("Inicia sesión", color = Primario)
                 }
             }
         }

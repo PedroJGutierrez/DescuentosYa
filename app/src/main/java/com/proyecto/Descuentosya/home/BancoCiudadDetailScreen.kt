@@ -2,10 +2,10 @@ package com.proyecto.Descuentosya.home
 
 import android.content.Intent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Share
@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -21,6 +22,9 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.firestore.FirebaseFirestore
 import com.proyecto.Descuentosya.data.BeneficioScrappeado
+import com.proyecto.Descuentosya.ui.theme.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,6 +32,14 @@ fun BancoCiudadDetailScreen(navController: NavController) {
     val firestore = FirebaseFirestore.getInstance()
     val beneficios = remember { mutableStateListOf<BeneficioScrappeado>() }
     val context = LocalContext.current
+    val themeViewModel: ThemeViewModel = viewModel()
+    val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
+
+    val fondo = if (isDarkTheme) FondoOscuro else FondoClaro
+    val textoPrincipal = if (isDarkTheme) TextoOscuro else TextoClaro
+    val textoSecundario = if (isDarkTheme) TextoOscuroSecundario else TextoClaroSecundario
+    val cardBackground = if (isDarkTheme) SuperficieOscura else SuperficieClara
+    val primario = Primario
 
     LaunchedEffect(Unit) {
         firestore.collection("benefits")
@@ -51,29 +63,37 @@ fun BancoCiudadDetailScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Banco Ciudad", color = Color.Black) },
+                title = {
+                    Text(
+                        text = "Banco Ciudad",
+                        color = textoPrincipal
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.Black)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = textoPrincipal)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = fondo
+                )
             )
-        }
+        },
+        containerColor = fondo
     ) { padding ->
         LazyColumn(
             contentPadding = padding,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 12.dp)
+                .padding(horizontal = 16.dp)
         ) {
             beneficiosAgrupados.forEach { (categoria, lista) ->
                 item {
                     Text(
                         text = categoria.uppercase(),
                         style = MaterialTheme.typography.titleSmall,
-                        color = Color(0xFF6A5AE0),
+                        color = primario,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
@@ -81,14 +101,16 @@ fun BancoCiudadDetailScreen(navController: NavController) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(min = 100.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(4.dp)
+                            .clip(MaterialTheme.shapes.large)
+                            .background(cardBackground)
+                            .padding(4.dp),
+                        colors = CardDefaults.cardColors(containerColor = cardBackground),
+                        elevation = CardDefaults.cardElevation(2.dp)
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(8.dp),
+                                .padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             if (beneficio.image.isNotEmpty()) {
@@ -97,24 +119,26 @@ fun BancoCiudadDetailScreen(navController: NavController) {
                                     contentDescription = null,
                                     modifier = Modifier
                                         .size(64.dp)
-                                        .padding(end = 8.dp),
+                                        .clip(MaterialTheme.shapes.medium)
+                                        .padding(end = 12.dp),
                                     contentScale = ContentScale.Crop
                                 )
                             }
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(text = beneficio.title, style = MaterialTheme.typography.bodyMedium)
+                                Text(text = beneficio.title, style = MaterialTheme.typography.bodyMedium, color = textoPrincipal)
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = beneficio.description,
                                     style = MaterialTheme.typography.bodySmall,
-                                    maxLines = 3
+                                    maxLines = 3,
+                                    color = textoSecundario
                                 )
                                 if (beneficio.conditions.isNotEmpty()) {
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = "Condiciones: ${beneficio.conditions}",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = Color.Gray
+                                        color = textoSecundario
                                     )
                                 }
                             }
@@ -127,7 +151,7 @@ fun BancoCiudadDetailScreen(navController: NavController) {
                                 }
                                 context.startActivity(Intent.createChooser(intent, "Compartir beneficio"))
                             }) {
-                                Icon(Icons.Default.Share, contentDescription = "Compartir", tint = Color.Black)
+                                Icon(Icons.Default.Share, contentDescription = "Compartir", tint = primario)
                             }
                         }
                     }

@@ -1,4 +1,4 @@
-package com.proyecto.DescuentosYa
+package com.proyecto.Descuentosya
 
 import android.os.Bundle
 import android.Manifest

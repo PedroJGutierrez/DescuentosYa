@@ -26,8 +26,6 @@ import com.proyecto.Descuentosya.ui.navigation.NavGraph
 import com.proyecto.Descuentosya.ui.theme.DescuentosYaTheme
 import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 import androidx.work.*
-import com.proyecto.DescuentosYa.MainActivity
-import com.proyecto.DescuentosYa.MainApp
 import com.proyecto.Descuentosya.data.FavoritosManager
 import com.proyecto.Descuentosya.data.FirestoreUploader
 import java.util.*

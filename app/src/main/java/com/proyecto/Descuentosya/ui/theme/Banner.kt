@@ -47,7 +47,7 @@ fun BannerCard(
     billetera: Billetera,
     navController: NavController,
     modifier: Modifier = Modifier,
-    onFavoritoCambiado: (String, Boolean) -> Unit = { _, _ -> }
+    onFavoritoCambiado: (String, Boolean) -> Unit = { _, _ -> },
 ) {
     val esFavorito by remember {
         derivedStateOf { FavoritosManager.esFavorito(billetera.nombre) }
@@ -56,7 +56,6 @@ fun BannerCard(
     var isPressed by remember { mutableStateOf(false) }
     val backgroundResId = getBackgroundForWallet(billetera.nombre)
 
-    // Animación suave de opacidad para la capa semitransparente
     val animatedAlpha by animateFloatAsState(
         targetValue = if (isPressed) 0.2f else 0.5f,
         label = "alphaAnim"
@@ -67,20 +66,17 @@ fun BannerCard(
             .clip(RoundedCornerShape(16.dp))
             .pointerInput(Unit) {
                 detectTapGestures(
-                    // Press prolongado — solo cambia el sombreado
                     onPress = {
                         isPressed = true
-                        tryAwaitRelease()   // Espera suelte o cancele
-                        isPressed = false   // Al soltar/cancelar vuelve
+                        tryAwaitRelease()
+                        isPressed = false
                     },
-                    // Tap corto — navega al detalle
                     onTap = {
                         navController.navigate("billetera_detalle/${billetera.nombre}")
                     }
                 )
             }
     ) {
-        /* Fondo */
         Image(
             painter = painterResource(id = backgroundResId),
             contentDescription = null,
@@ -88,14 +84,12 @@ fun BannerCard(
             modifier = Modifier.matchParentSize()
         )
 
-        /* Capa oscura animada */
         Box(
             modifier = Modifier
                 .matchParentSize()
                 .background(Color.Black.copy(alpha = animatedAlpha))
         )
 
-        /* Contenido */
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -109,7 +103,7 @@ fun BannerCard(
                 Text(
                     text = billetera.nombre,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = Color.White,  // Texto en blanco siempre
                     modifier = Modifier.weight(1f)
                 )
 
@@ -128,7 +122,7 @@ fun BannerCard(
                     ) {
                         Text(
                             text = if (esFavorito) "-" else "+",
-                            color = Color(0xFF448AFF),
+                            color = Color.White,
                             fontSize = 24.sp
                         )
                     }
@@ -136,23 +130,28 @@ fun BannerCard(
                     Icon(
                         imageVector = Icons.Default.AccountBalanceWallet,
                         contentDescription = null,
-                        tint = Color(0xFF448AFF),
+                        tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )
                 }
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier
+                    .background(Color.Black.copy(alpha = 0.15f), shape = RoundedCornerShape(4.dp))
+                    .padding(horizontal = 4.dp, vertical = 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
                 billetera.beneficios.forEach { beneficio ->
                     Box(
-                        modifier = Modifier.size(32.dp),
+                        modifier = Modifier.size(28.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = IconMapper.getIconByName(beneficio.iconName),
                             contentDescription = beneficio.descripcion,
-                            tint = if (beneficio.disponible) Color.White else Color.Gray, // APLICAR DIRECTAMENTE AQUÍ
-                            modifier = Modifier.size(24.dp)
+                            tint = if (beneficio.disponible) Color.White else Color.Gray,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }

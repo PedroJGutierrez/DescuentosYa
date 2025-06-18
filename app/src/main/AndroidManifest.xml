@@ -28,7 +28,7 @@
             android:value="AIzaSyCePVV5wQ5TxhxnThEmJRrGVPXtLtd3zh0" />
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.proyecto.Descuentosya.ui.theme.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.DescuentosYa">
             <intent-filter>
