@@ -13,7 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.proyecto.Descuentosya.ui.theme.PurplePrimary
+import com.proyecto.Descuentosya.ui.theme.Primario
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +40,7 @@ fun PrivacyScreen(navController: NavController) {
                 text = "Política de Privacidad",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = PurplePrimary
+                color = Primario
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -54,7 +54,7 @@ fun PrivacyScreen(navController: NavController) {
                 text = "Términos de Uso",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = PurplePrimary
+                color = Primario
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(

@@ -1,323 +1,186 @@
 package com.proyecto.Descuentosya.profile
 
+import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Blue
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.proyecto.DescuentosYa.R
+import com.proyecto.Descuentosya.ui.theme.*
 import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(navController: NavController) {
-    val context = LocalContext.current
-    val userId = FirebaseAuth.getInstance().currentUser?.uid
-    val colorScheme = MaterialTheme.colorScheme
+    val themeViewModel: ThemeViewModel = viewModel()
+    val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
 
-    val navBackStackEntry = navController.currentBackStackEntryAsState().value
-    val focusField = navBackStackEntry?.arguments?.getString("focusField")
+    val fondo = if (isDarkTheme) FondoOscuro else FondoClaro
+    val textoPrincipal = if (isDarkTheme) TextoOscuro else TextoClaro
+    val textoSecundario = if (isDarkTheme) TextoOscuroSecundario else TextoClaroSecundario
+    val sobrePrimario = if (isDarkTheme) SobrePrimarioOscuro else SobrePrimarioClaro
+    val primario = Primario
+
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
 
     var nombre by remember { mutableStateOf("") }
     var apellido by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var nacionalidad by remember { mutableStateOf("") }
-    var tarjetas by remember { mutableStateOf(listOf<String>()) }
-    var nuevaTarjeta by remember { mutableStateOf("") }
-    var showTarjetaDialog by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
-    var message by remember { mutableStateOf("") }
+    var mensajeEstado by remember { mutableStateOf("") }
+    var isGuardando by remember { mutableStateOf(false) }
 
-    val tiposTarjetas = listOf("Visa", "Mastercard", "American Express", "Naranja", "Cabal", "Cencosud")
-
-    val focusRequester = remember { FocusRequester() }
-    var showFocusMessage by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
+    LaunchedEffect(userId) {
         userId?.let {
             FirebaseFirestore.getInstance()
                 .collection("usuarios")
                 .document(it)
                 .get()
-                .addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        nombre = document.getString("nombre") ?: ""
-                        apellido = document.getString("apellido") ?: ""
-                        email = document.getString("email") ?: ""
-                        nacionalidad = document.getString("nacionalidad") ?: ""
-                        tarjetas = document.get("tarjetas") as? List<String> ?: listOf()
+                .addOnSuccessListener { doc ->
+                    if (doc.exists()) {
+                        nombre = doc.getString("nombre") ?: ""
+                        apellido = doc.getString("apellido") ?: ""
+                        email = doc.getString("email") ?: ""
+                        nacionalidad = doc.getString("nacionalidad") ?: ""
                     }
                 }
-        }
-    }
-
-    LaunchedEffect(focusField) {
-        if (focusField == "nombre") {
-            showFocusMessage = true
-            focusRequester.requestFocus()
+                .addOnFailureListener {
+                    mensajeEstado = "Error al cargar datos: ${it.message}"
+                }
         }
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Editar Perfil") },
+            CenterAlignedTopAppBar(
+                title = {
+                    Text("Editar Perfil", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold), color = textoPrincipal)
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = textoPrincipal)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = fondo)
             )
-        }
+        },
+        containerColor = fondo
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(colorScheme.background)
                 .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 32.dp)
+                .background(fondo)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-                    .background(Blue),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Mi Información",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
+            Text("Información Personal", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = textoPrincipal)
+            Spacer(modifier = Modifier.height(32.dp))
 
-            if (showFocusMessage) {
-                Text(
-                    text = "Agrega un nombre para que se vea en el Perfil",
-                    color = Blue,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    fontSize = 14.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = colorScheme.surface)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    OutlinedTextField(
-                        value = nombre,
-                        onValueChange = { nombre = it },
-                        label = { Text("Nombre") },
-                        leadingIcon = {
-                            Icon(Icons.Default.Person, contentDescription = null)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Blue,
-                            focusedLabelColor = Blue
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
-                        value = apellido,
-                        onValueChange = { apellido = it },
-                        label = { Text("Apellido") },
-                        leadingIcon = {
-                            Icon(Icons.Default.Person, contentDescription = null)
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Blue,
-                            focusedLabelColor = Blue
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { },
-                        label = { Text("Email") },
-                        leadingIcon = {
-                            Icon(Icons.Default.Email, contentDescription = null)
-                        },
-                        trailingIcon = {
-                            Icon(Icons.Default.Lock, contentDescription = "Bloqueado")
-                        },
-                        enabled = false,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            disabledBorderColor = colorScheme.outline.copy(alpha = 0.5f),
-                            disabledLabelColor = colorScheme.onSurface.copy(alpha = 0.6f),
-                            disabledTextColor = colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
-                        value = nacionalidad,
-                        onValueChange = { nacionalidad = it },
-                        label = { Text("Nacionalidad") },
-                        leadingIcon = {
-                            Icon(Icons.Default.Place, contentDescription = null)
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Blue,
-                            focusedLabelColor = Blue
-                        )
-                    )
-                }
-            }
-
+            OutlinedTextField(
+                value = nombre,
+                onValueChange = { nombre = it },
+                label = { Text("Nombre") },
+                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth()
+            )
             Spacer(modifier = Modifier.height(24.dp))
+
+            OutlinedTextField(
+                value = apellido,
+                onValueChange = { apellido = it },
+                label = { Text("Apellido") },
+                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            OutlinedTextField(
+                value = email,
+                onValueChange = {},
+                label = { Text("Email") },
+                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                trailingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                enabled = false,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            OutlinedTextField(
+                value = nacionalidad,
+                onValueChange = { nacionalidad = it },
+                label = { Text("Nacionalidad") },
+                leadingIcon = { Icon(Icons.Default.Place, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(36.dp))
 
             Button(
                 onClick = {
-                    guardarPerfil(userId, nombre, apellido, nacionalidad, tarjetas) { success, msg ->
-                        message = msg
-                        if (success) {
+                    if (userId == null) {
+                        mensajeEstado = "Error: Usuario no autenticado"
+                        return@Button
+                    }
+                    if (nombre.isBlank() || apellido.isBlank()) {
+                        mensajeEstado = "Por favor, completá tu nombre y apellido"
+                        return@Button
+                    }
+
+                    isGuardando = true
+                    val data = mapOf(
+                        "nombre" to nombre.trim(),
+                        "apellido" to apellido.trim(),
+                        "nacionalidad" to nacionalidad.trim()
+                    )
+                    FirebaseFirestore.getInstance()
+                        .collection("usuarios")
+                        .document(userId)
+                        .update(data)
+                        .addOnSuccessListener {
+                            mensajeEstado = "Perfil actualizado correctamente"
+                            isGuardando = false
                             navController.popBackStack()
                         }
-                    }
+                        .addOnFailureListener { e ->
+                            mensajeEstado = "No se pudo guardar. Intentá de nuevo."
+                            isGuardando = false
+                            Log.e("Firestore", "Error al actualizar perfil", e)
+                        }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
                     .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                enabled = !isLoading
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = primario),
+                enabled = !isGuardando
             ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
+                if (isGuardando) {
+                    CircularProgressIndicator(color = sobrePrimario, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 } else {
-                    Text("Guardar Cambios", fontSize = 16.sp)
+                    Text("Guardar Cambios", color = sobrePrimario)
                 }
             }
 
-            if (message.isNotEmpty()) {
+            if (mensajeEstado.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(20.dp))
                 Text(
-                    text = message,
-                    color = if (message.contains("Error")) Color.Red else Blue,
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyMedium
+                    mensajeEstado,
+                    color = if (mensajeEstado.contains("Error", ignoreCase = true)) MaterialTheme.colorScheme.error else primario,
+                    fontSize = 14.sp
                 )
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
-
-    if (showTarjetaDialog) {
-        AlertDialog(
-            onDismissRequest = { showTarjetaDialog = false },
-            title = { Text("Agregar Tipo de Tarjeta") },
-            text = {
-                Column {
-                    tiposTarjetas.forEach { tipo ->
-                        if (tipo !in tarjetas) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        tarjetas = tarjetas + tipo
-                                        showTarjetaDialog = false
-                                    }
-                                    .padding(vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(Icons.Default.CreditCard, contentDescription = null)
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(tipo)
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showTarjetaDialog = false }) {
-                    Text("Cancelar")
-                }
-            }
-        )
-    }
-}
-
-private fun guardarPerfil(
-    userId: String?,
-    nombre: String,
-    apellido: String,
-    nacionalidad: String,
-    tarjetas: List<String>,
-    onComplete: (Boolean, String) -> Unit
-) {
-    if (userId == null) {
-        onComplete(false, "Error: Usuario no encontrado")
-        return
-    }
-
-    val data = mapOf(
-        "nombre" to nombre,
-        "apellido" to apellido,
-        "nacionalidad" to nacionalidad,
-        "tarjetas" to tarjetas
-    )
-
-    FirebaseFirestore.getInstance()
-        .collection("usuarios")
-        .document(userId)
-        .update(data)
-        .addOnSuccessListener {
-            onComplete(true, "Perfil actualizado correctamente")
-        }
-        .addOnFailureListener { exception ->
-            onComplete(false, "Error al actualizar: ${exception.message}")
-        }
 }

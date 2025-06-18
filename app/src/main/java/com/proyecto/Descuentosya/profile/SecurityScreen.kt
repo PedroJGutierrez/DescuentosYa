@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
-import com.proyecto.Descuentosya.ui.theme.PurplePrimary
+import com.proyecto.Descuentosya.ui.theme.Primario
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +59,7 @@ fun SecurityScreen(navController: NavController) {
                 .padding(24.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            Text("Cambiar Contraseña", style = MaterialTheme.typography.headlineSmall, color = PurplePrimary)
+            Text("Cambiar Contraseña", style = MaterialTheme.typography.headlineSmall, color = Primario)
             Spacer(modifier = Modifier.height(24.dp))
 
             PasswordField(
