@@ -29,6 +29,7 @@ class NotificationWorker(context: Context, workerParams: WorkerParameters) : Wor
 
             for ((index, billeteraId) in favoritos.withIndex()) {
                 val billeteraSnapshot = db.collection("billeteras").document(billeteraId).get().await()
+                val billeteraNombreReal = billeteraSnapshot.getString("nombre") ?: billeteraId
                 val beneficiosRaw = billeteraSnapshot.get("beneficios") as? List<Map<String, Any>> ?: continue
 
                 val beneficiosFiltrados = beneficiosRaw.filter {
@@ -43,13 +44,8 @@ class NotificationWorker(context: Context, workerParams: WorkerParameters) : Wor
 
                 if (beneficiosFiltrados.isEmpty()) continue
 
-                val isBancoCiudad = billeteraId.equals("banco ciudad", ignoreCase = true)
-                val titulo = if (isBancoCiudad) "Banco Ciudad" else "BILLETERA $billeteraId"
-                val mensaje = if (isBancoCiudad) {
-                    "Mirá los beneficios que el Banco Ciudad tiene para vos!"
-                } else {
-                    "Descuentos disponibles: ${beneficiosFiltrados.size}"
-                }
+                val titulo = "Descuentos de $billeteraNombreReal"
+                val mensaje = "Descuentos disponibles: ${beneficiosFiltrados.size}"
 
                 val resumen = beneficiosFiltrados.joinToString("\n") { beneficio ->
                     val iconName = beneficio["icon"]?.toString() ?: ""
@@ -58,10 +54,9 @@ class NotificationWorker(context: Context, workerParams: WorkerParameters) : Wor
                     "- $descripcion ($categoriaLegible)"
                 }
 
-                val intent = Intent(applicationContext, Class.forName("com.proyecto.DescuentosYa.MainActivity")).apply {
+                val deepLink = android.net.Uri.parse("descuentosya://billetera_detalle/${android.net.Uri.encode(billeteraNombreReal)}")
+                val intent = Intent(Intent.ACTION_VIEW, deepLink).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    putExtra("desde_notificacion", true)
-                    putExtra("billetera_nombre", billeteraId)
                 }
 
                 val pendingIntent = PendingIntent.getActivity(
