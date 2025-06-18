@@ -1,3 +1,10 @@
+// 🔐 Cargar MAPS_API_KEY desde local.properties
+import java.util.Properties
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
 
 plugins {
     alias(libs.plugins.android.application)
@@ -16,6 +23,10 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+
+        // 🔐 Inyectar la API Key segura
+        buildConfigField("String", "MAPS_API_KEY", "\"${localProperties["MAPS_API_KEY"]}\"")
+        resValue("string", "google_maps_key", localProperties["MAPS_API_KEY"] as String)
     }
 
     buildTypes {
@@ -30,9 +41,10 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
-
 }
+
 kotlin {
     jvmToolchain(17)
 }

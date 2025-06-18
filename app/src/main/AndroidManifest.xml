@@ -15,41 +15,38 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.DescuentosYa.Launcher" tools:targetApi="31">
+        android:theme="@style/Theme.DescuentosYa"
+        tools:targetApi="31">
 
-    <!-- Clave de API para Google Maps -->
-    <meta-data
-        android:name="com.google.android.geo.API_KEY"
-        android:value="AIzaSyCePVV5wQ5TxhxnThEmJRrGVPXtLtd3zh0" />
+        <!-- ✅ Clave oculta de Google Maps -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
 
-    <!-- SplashActivity, lanzador de la app -->
         <activity
-            android:name="com.proyecto.Descuentosya.ui.theme.SplashActivity"
+            android:name="com.proyecto.Descuentosya.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.DescuentosYa.Splash">
+            android:theme="@style/Theme.DescuentosYa">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-        <!-- Deep link para billeteras -->
-        <intent-filter>
-            <action android:name="android.intent.action.VIEW" />
-            <category android:name="android.intent.category.DEFAULT" />
-            <category android:name="android.intent.category.BROWSABLE" />
-            <data
-                android:scheme="descuentosya"
-                android:host="billetera_detalle"
-                android:pathPrefix="/" />
-        </intent-filter>
-    </activity>
-
-    <!-- MainActivity declarada para que pueda ser abierta -->
-    <activity
-        android:name="com.proyecto.Descuentosya.MainActivity"
-        android:exported="true" />
-
+            <!-- 📲 Deep link para billeteras -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="descuentosya"
+                    android:host="billetera_detalle"
+                    android:pathPrefix="/" />
+            </intent-filter>
+        </activity>
     </application>
-    </manifest>
+
+</manifest>

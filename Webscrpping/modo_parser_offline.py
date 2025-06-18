@@ -3,6 +3,9 @@ import uuid
 import firebase_admin
 from firebase_admin import credentials, firestore
 import re
+import json
+from datetime import datetime
+from collections import Counter
 
 def categorizar(texto: str) -> str:
     texto = texto.lower()
@@ -23,7 +26,6 @@ def categorizar(texto: str) -> str:
     return "Otros"
 
 def setup_firebase(path="serviceAccount.json"):
-    """Configura Firebase - opcional si no tienes las credenciales"""
     try:
         cred = credentials.Certificate(path)
         firebase_admin.initialize_app(cred)
@@ -33,9 +35,6 @@ def setup_firebase(path="serviceAccount.json"):
         return None
 
 def parse_html(file_path="modo_final_rendered.html"):
-    """
-    Parse del HTML de MODO usando múltiples estrategias para encontrar las cards
-    """
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
@@ -49,15 +48,12 @@ def parse_html(file_path="modo_final_rendered.html"):
 
     print(f"📄 Archivo HTML cargado, tamaño: {len(content)} caracteres")
 
-    # Estrategia 1: Buscar por clases que contengan "card" (case insensitive)
     possible_selectors = [
-        # Selectores específicos de MODO
         "div[class*='Card']",
         "div[class*='card']",
         "[class*='promo']",
         "[class*='benefit']",
         "[class*='offer']",
-        # Selectores genéricos
         "div[class*='container'] div[class*='item']",
         "article",
         ".card",
@@ -75,7 +71,6 @@ def parse_html(file_path="modo_final_rendered.html"):
 
     if not cards:
         print("⚠️ No se encontraron cards con selectores estándar, buscando texto...")
-        # Estrategia de respaldo: buscar elementos que contengan texto común de promociones
         all_divs = soup.find_all(['div', 'article', 'section'])
         cards = []
         for div in all_divs:
@@ -86,58 +81,44 @@ def parse_html(file_path="modo_final_rendered.html"):
 
     beneficios = []
 
-    for i, card in enumerate(cards[:50]):  # Limitamos a 50 para evitar spam
+    for i, card in enumerate(cards[:50]):
         try:
-            # Extraer texto de la card
             card_text = card.get_text(separator=' ', strip=True)
-
-            if len(card_text) < 10:  # Filtrar cards muy pequeñas
+            if len(card_text) < 10:
                 continue
 
-            # Estrategias para extraer título y descripción
+            # Mejor detección del título
+            title_candidates = card.select('h1, h2, h3, h4, h5, strong, span, div')
             title = ""
-            description = ""
+            for elem in title_candidates:
+                text = elem.get_text(strip=True)
+                if len(text) > 4 and not re.search(r"(?i)sin tope|tope.*|macro|banco|promoción", text):
+                    title = text
+                    break
 
-            # Buscar elementos de título comunes
-            title_selectors = ['h1', 'h2', 'h3', 'h4', 'h5', '[class*="title"]', '[class*="Title"]', 'strong']
-            for selector in title_selectors:
-                title_elem = card.select_one(selector)
-                if title_elem:
-                    title = title_elem.get_text(strip=True)
-                    if len(title) > 5:  # Título debe tener al menos 5 caracteres
-                        break
-
-            # Buscar elementos de descripción
-            desc_selectors = ['p', '[class*="description"]', '[class*="Description"]', 'span']
-            for selector in desc_selectors:
-                desc_elems = card.select(selector)
-                for desc_elem in desc_elems:
-                    desc_text = desc_elem.get_text(strip=True)
-                    if len(desc_text) > len(description) and desc_text != title:
-                        description = desc_text
-
-            # Si no encontramos título específico, usar las primeras palabras
-            if not title and len(card_text) > 0:
+            # Si no se encontró título útil, tomar primeras palabras del texto
+            if not title:
                 words = card_text.split()
-                title = ' '.join(words[:8])  # Primeras 8 palabras como título
-                description = ' '.join(words[8:]) if len(words) > 8 else card_text
+                title = ' '.join(words[:5]) if len(words) >= 5 else card_text
 
-            # Si no hay descripción, usar todo el texto
-            if not description:
+            description = card_text.replace(title, '').strip()
+            if not description or description.lower() == title.lower():
                 description = card_text
 
-            # Buscar información adicional
+            if title.lower() in description.lower():
+                conditions = description
+            else:
+                conditions = f"{title}. {description}"
+
             banco = ""
             tope = ""
 
-            # Buscar información de banco
             banco_keywords = ['banco', 'santander', 'bbva', 'galicia', 'nación', 'provincia', 'macro', 'icbc']
             for keyword in banco_keywords:
                 if keyword in card_text.lower():
                     banco = keyword.title()
                     break
 
-            # Buscar topes o límites
             tope_patterns = [
                 r'tope.*?\$?\d+',
                 r'hasta.*?\$?\d+',
@@ -150,28 +131,27 @@ def parse_html(file_path="modo_final_rendered.html"):
                     tope = match.group(0)
                     break
 
-            # Solo agregar si tenemos contenido mínimo
-            if title and len(title.strip()) > 3:
-                beneficio = {
-                    "id": str(uuid.uuid4()),
-                    "title": title[:200],  # Limitar longitud
-                    "description": description[:500],  # Limitar longitud
-                    "conditions": description[:300],
-                    "category": categorizar(title + " " + description),
-                    "days": [],
-                    "image": "",
-                    "banco": banco,
-                    "tope": tope,
-                    "raw_text": card_text[:1000]  # Para debug
-                }
-                beneficios.append(beneficio)
+            beneficio = {
+                "id": str(uuid.uuid4()),
+                "title": title[:200],
+                "description": description[:500],
+                "conditions": conditions[:300],
+                "category": categorizar(f"{title} {description}"),
+                "days": [],
+                "image": "",
+                "banco": banco,
+                "tope": tope,
+                "origen": "modo",
+                "timestamp": datetime.utcnow().isoformat(),
+                "raw_text": card_text[:1000]
+            }
+            beneficios.append(beneficio)
 
-                # Debug: mostrar los primeros 3 beneficios encontrados
-                if len(beneficios) <= 3:
-                    print(f"\n🎯 Beneficio {len(beneficios)}:")
-                    print(f"   Título: {title[:100]}...")
-                    print(f"   Descripción: {description[:150]}...")
-                    print(f"   Categoría: {beneficio['category']}")
+            if len(beneficios) <= 3:
+                print(f"\n🎯 Beneficio {len(beneficios)}:")
+                print(f"   Título: {title[:100]}...")
+                print(f"   Descripción: {description[:150]}...")
+                print(f"   Categoría: {beneficio['category']}")
 
         except Exception as e:
             print(f"⚠️ Error procesando card {i}: {e}")
@@ -180,26 +160,56 @@ def parse_html(file_path="modo_final_rendered.html"):
     print(f"\n✅ Total de beneficios extraídos: {len(beneficios)}")
     return beneficios
 
+def agrupar_beneficios(beneficios):
+    agrupados = {}
+
+    for b in beneficios:
+        key = b['title'].strip().lower()
+
+        if key not in agrupados:
+            agrupados[key] = b
+        else:
+            existente = agrupados[key]
+
+            # Combinar descripciones si son distintas
+            if b['description'] not in existente['description']:
+                existente['description'] += f" | {b['description']}"
+
+            # Combinar condiciones si son distintas
+            if b['conditions'] not in existente['conditions']:
+                existente['conditions'] += f" | {b['conditions']}"
+
+            # Combinar topes si son distintos
+            if b['tope'] and b['tope'] not in existente['tope']:
+                if existente['tope']:
+                    existente['tope'] += f", {b['tope']}"
+                else:
+                    existente['tope'] = b['tope']
+
+    print(f"🔁 Reducidos {len(beneficios)} beneficios a {len(agrupados)} únicos por título.")
+    return list(agrupados.values())
+
 def save_to_firestore(data):
-    """Guarda los datos en Firestore - opcional"""
     db = setup_firebase()
     if not db:
         print("⚠️ No se pudo conectar a Firestore, saltando guardado...")
         return
 
     try:
+        docs = db.collection("benefits_modo").stream()
+        for doc in docs:
+            db.collection("benefits_modo").document(doc.id).delete()
+        print("🗑️ Colección 'benefits_modo' borrada correctamente.")
+
         for b in data:
-            # Remover campo raw_text antes de guardar
             if 'raw_text' in b:
                 del b['raw_text']
             db.collection("benefits_modo").document(b["id"]).set(b)
-        print(f"✅ Subidos {len(data)} beneficios a Firestore → benefits_modo")
+        print(f"✅ Subidos {len(data)} beneficios nuevos a Firestore → benefits_modo")
     except Exception as e:
         print(f"❌ Error guardando en Firestore: {e}")
 
 def save_to_json(data, filename="beneficios_modo.json"):
-    """Guarda los datos en un archivo JSON local como respaldo"""
-    import json
     try:
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
@@ -209,8 +219,6 @@ def save_to_json(data, filename="beneficios_modo.json"):
 
 def main():
     print("🚀 Iniciando extracción de beneficios MODO...")
-
-    # Intentar con el nombre de archivo que mencionaste
     file_names = ["modo_final_rendered.html", "paste.txt", "modo.html"]
 
     beneficios = []
@@ -227,19 +235,17 @@ def main():
         print("❌ No se pudieron extraer beneficios de ningún archivo")
         return
 
+    beneficios_agrupados = agrupar_beneficios(beneficios)
+
     print(f"\n📊 Resumen por categorías:")
-    from collections import Counter
-    categories = Counter([b['category'] for b in beneficios])
+    categories = Counter([b['category'] for b in beneficios_agrupados])
     for cat, count in categories.items():
         print(f"   {cat}: {count}")
 
-    # Guardar en JSON local
-    save_to_json(beneficios)
+    save_to_json(beneficios_agrupados)
+    save_to_firestore(beneficios_agrupados)
 
-    # Intentar guardar en Firestore (opcional)
-    save_to_firestore(beneficios)
-
-    print(f"\n🎉 Proceso completado! Se procesaron {len(beneficios)} beneficios.")
+    print(f"\n🎉 Proceso completado! Se procesaron {len(beneficios_agrupados)} beneficios.")
 
 if __name__ == "__main__":
     main()
