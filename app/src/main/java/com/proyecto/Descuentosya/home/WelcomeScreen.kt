@@ -1,40 +1,45 @@
 package com.proyecto.Descuentosya.home
 
 import android.content.Context
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.google.firebase.Firebase
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.firestore
-import com.proyecto.DescuentosYa.R
-import com.proyecto.Descuentosya.viewmodel.WelcomeViewModel
-import com.proyecto.Descuentosya.ui.theme.FondoCelesteBackground
-import com.proyecto.Descuentosya.ui.theme.BannerCard
-import com.proyecto.Descuentosya.data.FavoritosManager
 import com.proyecto.Descuentosya.components.Billetera
+import com.proyecto.Descuentosya.data.FavoritosManager
+import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
+import com.proyecto.Descuentosya.viewmodel.WelcomeViewModel
+import com.proyecto.Descuentosya.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WelcomeScreen(navController: NavController) {
     val context = LocalContext.current
+
     val welcomeViewModel: WelcomeViewModel = viewModel()
+    val themeViewModel: ThemeViewModel = viewModel()
+
+    val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
+
+    val fondo = if (isDarkTheme) FondoOscuro else FondoClaro
+    val textoPrincipal = if (isDarkTheme) TextoOscuro else TextoClaro
+    val textoSecundario = if (isDarkTheme) TextoOscuroSecundario else TextoClaroSecundario
+    val primario = Primario
 
     val isLoggedIn by welcomeViewModel.isLoggedIn.collectAsState()
     val userEmail by welcomeViewModel.currentUserEmail.collectAsState()
@@ -46,14 +51,10 @@ fun WelcomeScreen(navController: NavController) {
     var billeterasFavoritas by remember { mutableStateOf<List<Billetera>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
-    val colorScheme = MaterialTheme.colorScheme
-
-    // Solo dispara la carga inicial
     LaunchedEffect(Unit) {
         FavoritosManager.cargarFavoritosDesdeFirestore()
     }
 
-    // Reacciona a cuando los favoritos ya están cargados
     LaunchedEffect(favoritosCargados) {
         if (favoritosCargados) {
             billeterasFavoritas = FavoritosManager.obtenerBilleterasFavoritas()
@@ -73,94 +74,135 @@ fun WelcomeScreen(navController: NavController) {
 
         if (isLoggedIn && !hasNavigated) {
             hasNavigated = true
-            val uid = FirebaseAuth.getInstance().currentUser?.uid
-            if (uid != null) {
-                Firebase.firestore.collection("usuarios").document(uid)
-                    .get()
-                    .addOnSuccessListener { doc ->
-                        val tipo = doc.getString("tipo") ?: "Usuario"
-                        showWelcomeMessage = !welcomeViewModel.hasShownWelcome(context)
-                        welcomeViewModel.setWelcomeShown(context)
-                    }
-            }
+            showWelcomeMessage = !welcomeViewModel.hasShownWelcome(context)
+            welcomeViewModel.setWelcomeShown(context)
         }
     }
 
-
-    FondoCelesteBackground {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "Descuentos Ya",
-                            style = MaterialTheme.typography.displayLarge.copy(
-                                shadow = Shadow(
-                                    color = Color.Black.copy(alpha = 0.4f),
-                                    offset = Offset(2f, 2f),
-                                    blurRadius = 4f
-                                )
-                            ),
-                            color = colorScheme.onBackground
-                        )
-                    },
-                    actions = {
-                        if (isLoggedIn) {
-                            IconButton(onClick = { navController.navigate("settings") }) {
-                                Icon(Icons.Default.Menu, contentDescription = "Menú")
-                            }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "Descuentos Ya",
+                        color = textoPrincipal,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
+                actions = {
+                    if (isLoggedIn) {
+                        IconButton(onClick = { navController.navigate("settings") }) {
+                            Icon(
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "Menú",
+                                tint = textoPrincipal
+                            )
                         }
                     }
-                )
-            },
-            containerColor = Color.Transparent
-        ) { paddingValues ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    shape = MaterialTheme.shapes.medium,
-                    color = colorScheme.surface.copy(alpha = 0.95f),
-                    tonalElevation = 4.dp,
-                    shadowElevation = 8.dp
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = primario),
+                modifier = Modifier.shadow(8.dp)
+            )
+        },
+        containerColor = fondo
+    ) { paddingValues ->
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            if (!isLoggedIn) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        if (isLoggedIn) {
-                            Row(
+                    Text(
+                        "Inicia sesión para ver tus billeteras favoritas.",
+                        color = textoSecundario,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            } else {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    if (showWelcomeMessage) {
+                        Text(
+                            "Bienvenido: $userEmail",
+                            color = primario,
+                            style = MaterialTheme.typography.headlineSmall,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        Text(
+                            "Sesión iniciada correctamente",
+                            color = textoSecundario,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                    }
+
+                    Text(
+                        "Tus billeteras favoritas:",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = textoPrincipal,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    when {
+                        isLoading -> {
+                            Box(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End
+                                contentAlignment = Alignment.Center
                             ) {
-                                TextButton(onClick = { navController.navigate("billeteras") }) {
-                                    Text("Billeteras", color = Color.Blue)
-                                }
+                                CircularProgressIndicator(color = primario)
                             }
+                        }
 
-                            if (showWelcomeMessage) {
-                                Text("Bienvenido: $userEmail", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(bottom = 8.dp))
-                                Text("Sesión iniciada correctamente", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(bottom = 24.dp))
-                            }
+                        billeterasFavoritas.isEmpty() -> {
+                            Text(
+                                "Todavía no tienes billeteras favoritas.",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = textoSecundario,
+                                modifier = Modifier.padding(vertical = 40.dp)
+                            )
+                        }
 
-                            if (isLoading) {
-                                CircularProgressIndicator()
-                            } else if (billeterasFavoritas.isEmpty()) {
-                                Text("Todavía no tienes billeteras favoritas.", style = MaterialTheme.typography.bodyLarge)
-                            } else {
-                                LazyColumn(
-                                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                                    modifier = Modifier.fillMaxWidth()
+                        else -> {
+                            billeterasFavoritas.forEach { billetera ->
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .shadow(6.dp, RoundedCornerShape(16.dp))
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(
+                                            brush = if (isDarkTheme) {
+                                                Brush.linearGradient(
+                                                    colors = listOf(
+                                                        SuperficieOscura.copy(alpha = 0.85f),
+                                                        SuperficieOscura.copy(alpha = 0.75f)
+                                                    )
+                                                )
+                                            } else {
+                                                Brush.linearGradient(
+                                                    colors = listOf(
+                                                        SobrePrimarioClaro.copy(alpha = 0.95f),
+                                                        SobrePrimarioClaro.copy(alpha = 0.85f)
+                                                    )
+                                                )
+                                            }
+                                        )
                                 ) {
-                                    items(billeterasFavoritas) { billetera ->
+                                    Card(
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(Color.Transparent)
+                                    ) {
                                         BannerCard(
                                             billetera = billetera,
                                             navController = navController,
@@ -173,16 +215,37 @@ fun WelcomeScreen(navController: NavController) {
                                         )
                                     }
                                 }
+
+                                Spacer(modifier = Modifier.height(12.dp))
                             }
                         }
+                    }
+                }
 
-                            Spacer(modifier = Modifier.height(16.dp))
-
-
-                        }
+                // Botón flotante abajo a la derecha
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.BottomEnd
+                ) {
+                    TextButton(
+                        onClick = { navController.navigate("billeteras") },
+                        colors = ButtonDefaults.textButtonColors(contentColor = primario),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(primario.copy(alpha = 0.1f))
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = "Ver billeteras",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = primario
+                        )
                     }
                 }
             }
         }
+    }
 }
 

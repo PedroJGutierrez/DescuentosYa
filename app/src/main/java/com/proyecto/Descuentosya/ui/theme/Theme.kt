@@ -1,28 +1,29 @@
 package com.proyecto.Descuentosya.ui.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 
-private val DarkColorScheme = darkColorScheme(
-    primary = GrisTexto,            // botones principales
-    secondary = GrisTexto,          // elementos secundarios
-    background = GrisOscuro,        // fondo de la app
-    surface = GrisIntermedio,       // tarjetas / sheets
-    onPrimary = Blanco,             // texto sobre botones
-    onSecondary = Blanco,           // texto sobre elementos secundarios
-    onBackground = Blanco,          // texto general sobre fondo
-    onSurface = Blanco              // texto sobre tarjetas
+val EsquemaClaro = lightColorScheme(
+    primary = Primario,
+    secondary = Secundario,
+    background = FondoClaro,
+    surface = SuperficieClara,
+    onPrimary = SobrePrimarioClaro,
+    onBackground = TextoClaro,
+    onSurface = TextoClaro,
+    error = Error
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = AzulPrimario,
-    secondary = AzulClaro,
-    background = Blanco,
-    surface = Blanco,
-    onPrimary = AzulOscuro,
-    onSecondary = AzulOscuro,
-    onBackground = AzulOscuro,
-    onSurface = AzulOscuro
+val EsquemaOscuro = darkColorScheme(
+    primary = Primario,
+    secondary = Secundario,
+    background = FondoOscuro,
+    surface = SuperficieOscura,
+    onPrimary = SobrePrimarioOscuro,
+    onBackground = TextoOscuro,
+    onSurface = TextoOscuro,
+    error = Error
 )
 
 @Composable
@@ -30,7 +31,7 @@ fun DescuentosYaTheme(
     darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val colorScheme = if (darkTheme) EsquemaOscuro else EsquemaClaro
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,

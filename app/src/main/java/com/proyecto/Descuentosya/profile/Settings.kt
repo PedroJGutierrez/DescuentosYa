@@ -12,8 +12,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Blue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -24,7 +24,7 @@ import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.proyecto.DescuentosYa.R
-import com.proyecto.Descuentosya.ui.theme.PurplePrimary
+import com.proyecto.Descuentosya.ui.theme.*
 import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 import com.proyecto.Descuentosya.viewmodel.WelcomeViewModel
 
@@ -32,9 +32,16 @@ import com.proyecto.Descuentosya.viewmodel.WelcomeViewModel
 @Composable
 fun SettingsScreen(navController: NavController) {
     val welcomeViewModel: WelcomeViewModel = viewModel()
+    val themeViewModel: ThemeViewModel = viewModel()
     val context = LocalContext.current
     val userId = FirebaseAuth.getInstance().currentUser?.uid
-    val colorScheme = MaterialTheme.colorScheme
+    val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
+
+    // Usamos tus colores según tema
+    val fondo = if (isDarkTheme) FondoOscuro else FondoClaro
+    val textoPrincipal = if (isDarkTheme) TextoOscuro else TextoClaro
+    val textoSecundario = if (isDarkTheme) TextoOscuroSecundario else TextoClaroSecundario
+    val cardColor = if (isDarkTheme) SuperficieOscura else SuperficieClara
 
     var firestoreEmail by remember { mutableStateOf("") }
     var nombre by remember { mutableStateOf("") }
@@ -57,22 +64,27 @@ fun SettingsScreen(navController: NavController) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Mi Perfil") },
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        "Mi Perfil",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = textoPrincipal
+                        )
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = textoPrincipal)
                     }
                 },
                 actions = {
-                    val themeViewModel: ThemeViewModel = viewModel()
-                    val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
-
                     IconButton(
                         onClick = { themeViewModel.setDarkTheme(!isDarkTheme) },
                         modifier = Modifier
                             .size(40.dp)
-                            .clip(CircleShape) // Redondea y recorta la imagen
+                            .clip(CircleShape)
                             .background(Color.Gray.copy(alpha = 0.15f), shape = CircleShape)
                             .padding(8.dp)
                     ) {
@@ -81,51 +93,52 @@ fun SettingsScreen(navController: NavController) {
                                 id = if (isDarkTheme) R.drawable.sol else R.drawable.luna
                             ),
                             contentDescription = "Cambiar tema",
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clip(CircleShape), // Asegura que incluso el ícono se recorte si tiene bordes
-                            tint = Color.Unspecified // Mantiene los colores reales del PNG
+                            modifier = Modifier.size(24.dp),
+                            tint = Color.Unspecified
                         )
                     }
-
                     Spacer(modifier = Modifier.width(4.dp))
-
-                    IconButton(onClick = {
-                        navController.navigate("notifications")
-                    }) {
+                    IconButton(onClick = { navController.navigate("notifications") }) {
                         Icon(
                             imageVector = Icons.Default.Notifications,
-                            contentDescription = "Notificaciones"
+                            contentDescription = "Notificaciones",
+                            tint = textoPrincipal
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = fondo,
+                    scrolledContainerColor = fondo
+                ),
+                modifier = Modifier.shadow(elevation = 2.dp)
             )
-        }
+        },
+        containerColor = fondo
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(colorScheme.background)
+                .background(fondo)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(140.dp)
-                    .background(Blue),
+                    .background(Primario),
                 contentAlignment = Alignment.Center
             ) {
                 if (nombre.isNotBlank() && apellido.isNotBlank()) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "$nombre $apellido",
-                            color = Color.White,
+                            color = SobrePrimarioClaro,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = firestoreEmail,
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = SobrePrimarioClaro.copy(alpha = 0.8f),
                             fontSize = 14.sp
                         )
                     }
@@ -138,30 +151,27 @@ fun SettingsScreen(navController: NavController) {
                     ) {
                         Text(
                             text = "Agrega un nombre para que se vea en el Perfil",
-                            color = Color.White.copy(alpha = 0.8f),
+                            color = SobrePrimarioClaro.copy(alpha = 0.8f),
                             fontSize = 14.sp,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
-
                         Box(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
-                                .background(Color.White.copy(alpha = 0.2f)),
+                                .background(SobrePrimarioClaro.copy(alpha = 0.2f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = "Agregar datos",
-                                tint = Color.White
+                                tint = SobrePrimarioClaro
                             )
                         }
-
                         Spacer(modifier = Modifier.height(8.dp))
-
                         Text(
                             text = "Agrega tus datos",
-                            color = Color.White,
+                            color = SobrePrimarioClaro,
                             fontSize = 14.sp
                         )
                     }
@@ -173,38 +183,33 @@ fun SettingsScreen(navController: NavController) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = colorScheme.surface)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = cardColor),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
-                Column {
-                    SettingsItem(
-                        icon = Icons.Default.Person,
-                        title = "Editar perfil",
-                        onClick = { navController.navigate("edit_profile") }
-                    )
-
-                    Divider(color = colorScheme.outline.copy(alpha = 0.2f))
-                    SettingsItem(
-                        icon = Icons.Default.PrivacyTip,
-                        title = "Privacidad",
-                        onClick = { navController.navigate("privacy") }
-                    )
-                    Divider(color = colorScheme.outline.copy(alpha = 0.2f))
-                    SettingsItem(
-                        icon = Icons.Default.Security,
-                        title = "Seguridad",
-                        onClick = { navController.navigate("security") }
-                    )
-                    Divider(color = colorScheme.outline.copy(alpha = 0.2f))
-
-                    SettingsItem(
-                        icon = Icons.Default.AccountCircle,
-                        title = "Cuentas",
-                        onClick = { navController.navigate("accounts") }
-                    )
-                    Divider(color = colorScheme.outline.copy(alpha = 0.2f))
-
+                Column(modifier = Modifier.padding(16.dp)) {
+                    SettingsItem(icon = Icons.Default.Person, title = "Editar perfil", textoPrincipal) {
+                        navController.navigate("edit_profile")
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Divider(color = textoSecundario.copy(alpha = 0.15f), thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingsItem(icon = Icons.Default.PrivacyTip, title = "Privacidad", textoPrincipal) {
+                        navController.navigate("privacy")
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Divider(color = textoSecundario.copy(alpha = 0.15f), thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingsItem(icon = Icons.Default.Security, title = "Seguridad", textoPrincipal) {
+                        navController.navigate("security")
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Divider(color = textoSecundario.copy(alpha = 0.15f), thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingsItem(icon = Icons.Default.AccountCircle, title = "Cuentas", textoPrincipal) {
+                        navController.navigate("accounts")
+                    }
                 }
             }
 
@@ -223,9 +228,9 @@ fun SettingsScreen(navController: NavController) {
                         .align(Alignment.CenterHorizontally)
                         .padding(bottom = 32.dp)
                 ) {
-                    Icon(Icons.Default.ExitToApp, contentDescription = "Cerrar sesión", tint = Color.Red)
+                    Icon(Icons.Default.ExitToApp, contentDescription = "Cerrar sesión", tint = Error)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Cerrar sesión", color = Color.Red)
+                    Text("Cerrar sesión", color = Error)
                 }
             }
         }
@@ -236,35 +241,33 @@ fun SettingsScreen(navController: NavController) {
 fun SettingsItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
+    textoColor: Color,
     onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 16.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = icon,
             contentDescription = title,
-            tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(24.dp)
+            tint = Primario,
+            modifier = Modifier.size(28.dp)
         )
-
-        Spacer(modifier = Modifier.width(16.dp))
-
+        Spacer(modifier = Modifier.width(20.dp))
         Text(
             text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+            color = textoColor,
             modifier = Modifier.weight(1f)
         )
-
         Icon(
             imageVector = Icons.Default.ChevronRight,
             contentDescription = "Ir a $title",
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            tint = textoColor.copy(alpha = 0.3f),
             modifier = Modifier.size(20.dp)
         )
     }
