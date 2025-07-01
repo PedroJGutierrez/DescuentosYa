@@ -2,18 +2,18 @@ package com.proyecto.Descuentosya.login
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
-import com.proyecto.Descuentosya.ui.theme.Primario
-import com.proyecto.Descuentosya.ui.theme.SobrePrimarioClaro
-import com.proyecto.Descuentosya.ui.theme.TextoClaro
+import com.proyecto.Descuentosya.ui.theme.*
+import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,22 +21,29 @@ fun ForgotPasswordScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var message by remember { mutableStateOf<String?>(null) }
     var isError by remember { mutableStateOf(false) }
-    val context = LocalContext.current
+
+    val themeViewModel: ThemeViewModel = viewModel()
+    val isDark by themeViewModel.isDarkTheme.collectAsState()
+
+    val fondo = if (isDark) FondoOscuro else FondoClaro
+    val textoPrimario = if (isDark) TextoOscuro else TextoClaro
+    val sobrePrimario = if (isDark) SobrePrimarioOscuro else SobrePrimarioClaro
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Recuperar contraseña", color = SobrePrimarioClaro) },
+                title = { Text("Recuperar contraseña", color = sobrePrimario) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = SobrePrimarioClaro)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = sobrePrimario)
                     }
                 },
                 colors = TopAppBarDefaults.mediumTopAppBarColors(
                     containerColor = Primario
                 )
             )
-        }
+        },
+        containerColor = fondo
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -49,7 +56,7 @@ fun ForgotPasswordScreen(navController: NavController) {
             Text(
                 "Ingresa tu correo electrónico",
                 style = MaterialTheme.typography.headlineMedium,
-                color = TextoClaro
+                color = textoPrimario
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -64,11 +71,11 @@ fun ForgotPasswordScreen(navController: NavController) {
                 shape = MaterialTheme.shapes.medium,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Primario,
-                    unfocusedBorderColor = TextoClaro.copy(alpha = 0.3f),
+                    unfocusedBorderColor = textoPrimario.copy(alpha = 0.3f),
                     focusedLabelColor = Primario,
                     cursorColor = Primario,
-                    focusedTextColor = TextoClaro,
-                    unfocusedTextColor = TextoClaro
+                    focusedTextColor = textoPrimario,
+                    unfocusedTextColor = textoPrimario
                 )
             )
 
@@ -96,7 +103,7 @@ fun ForgotPasswordScreen(navController: NavController) {
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
                 shape = MaterialTheme.shapes.large,
-                colors = ButtonDefaults.buttonColors(containerColor = Primario, contentColor = SobrePrimarioClaro)
+                colors = ButtonDefaults.buttonColors(containerColor = Primario, contentColor = sobrePrimario)
             ) {
                 Text("Enviar correo")
             }
