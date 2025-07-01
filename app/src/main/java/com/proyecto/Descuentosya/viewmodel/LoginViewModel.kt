@@ -30,19 +30,22 @@ class LoginViewModel : ViewModel() {
         }
 
         isLoading.value = true
+        errorMessage.value = null
+        passwordError.value = false
+
         viewModelScope.launch {
-            auth.signInWithEmailAndPassword(email, password)
+            FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener { task ->
                     isLoading.value = false
                     if (task.isSuccessful) {
-                        val user = auth.currentUser
+                        val user = FirebaseAuth.getInstance().currentUser
                         val uid = user?.uid ?: return@addOnCompleteListener
 
                         if (user.isEmailVerified) {
                             context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
                                 .edit().putString("auth_token", uid).apply()
 
-                            db.collection("usuarios").document(uid).get()
+                            Firebase.firestore.collection("usuarios").document(uid).get()
                                 .addOnSuccessListener { doc ->
                                     if (doc.exists()) {
                                         userType.value = doc.getString("tipo") ?: "Usuario"
@@ -55,18 +58,30 @@ class LoginViewModel : ViewModel() {
                                 }
 
                         } else {
-                            auth.signOut()
-                            errorMessage.value = "Debes verificar tu correo"
+                            FirebaseAuth.getInstance().signOut()
+                            errorMessage.value = "Debes verificar tu correo electrónico"
                             showResendVerification.value = true
                         }
                     } else {
-                        val errorMsg = task.exception?.message ?: "Error desconocido"
-                        passwordError.value = errorMsg.contains("password", ignoreCase = true)
-                        errorMessage.value = if (passwordError.value) "Contraseña incorrecta" else errorMsg
+                        val exception = task.exception
+                        when (exception) {
+                            is com.google.firebase.auth.FirebaseAuthInvalidUserException -> {
+                                FirebaseAuth.getInstance().signOut()
+                                errorMessage.value = "El usuario no existe"
+                            }
+                            is com.google.firebase.auth.FirebaseAuthInvalidCredentialsException -> {
+                                passwordError.value = true
+                                errorMessage.value = "Contraseña incorrecta"
+                            }
+                            else -> {
+                                errorMessage.value = exception?.localizedMessage ?: "Error desconocido al iniciar sesión"
+                            }
+                        }
                     }
                 }
         }
     }
+
 
     fun resetPassword(email: String) {
         if (email.isNotEmpty()) {
