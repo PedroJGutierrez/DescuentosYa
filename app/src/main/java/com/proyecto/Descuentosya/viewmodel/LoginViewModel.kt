@@ -10,6 +10,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
+import androidx.core.content.edit
 
 class LoginViewModel : ViewModel() {
 
@@ -43,7 +44,7 @@ class LoginViewModel : ViewModel() {
 
                         if (user.isEmailVerified) {
                             context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                                .edit().putString("auth_token", uid).apply()
+                                .edit() { putString("auth_token", uid) }
 
                             Firebase.firestore.collection("usuarios").document(uid).get()
                                 .addOnSuccessListener { doc ->
@@ -100,7 +101,7 @@ class LoginViewModel : ViewModel() {
     fun resendVerificationEmail() {
         val user = auth.currentUser
         user?.reload()?.addOnCompleteListener {
-            if (user != null && !user.isEmailVerified) {
+            if (!user.isEmailVerified) {
                 user.sendEmailVerification()
                     .addOnSuccessListener {
                         message.value = "Correo reenviado correctamente"
@@ -124,7 +125,7 @@ class LoginViewModel : ViewModel() {
                     val uid = user?.uid ?: return@addOnCompleteListener
 
                     context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                        .edit().putString("auth_token", uid).apply()
+                        .edit() { putString("auth_token", uid) }
 
                     val userDocRef = db.collection("usuarios").document(uid)
                     userDocRef.get().addOnSuccessListener { doc ->
