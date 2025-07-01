@@ -7,10 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.*                  // Import Material3
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,18 +18,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.proyecto.DescuentosYa.R
-import com.proyecto.Descuentosya.ui.theme.Error
-import com.proyecto.Descuentosya.ui.theme.Primario
-import com.proyecto.Descuentosya.ui.theme.Secundario
-import com.proyecto.Descuentosya.ui.theme.SobrePrimarioClaro
-import com.proyecto.Descuentosya.ui.theme.TextoClaro
+import com.proyecto.Descuentosya.ui.theme.*
 import com.proyecto.Descuentosya.viewmodel.LoginViewModel
 import com.airbnb.lottie.compose.*
+import com.proyecto.Descuentosya.viewmodel.ThemeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +38,13 @@ fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    val themeViewModel: ThemeViewModel = viewModel()
+    val isDark by themeViewModel.isDarkTheme.collectAsState()
+
+    // Colores dinámicos según el tema
+    val fondo = if (isDark) FondoOscuro else FondoClaro
+    val textoPrimario = if (isDark) TextoOscuro else TextoClaro
+    val sobrePrimario = if (isDark) SobrePrimarioOscuro else SobrePrimarioClaro
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -71,21 +75,13 @@ fun LoginScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Iniciar sesión", color = SobrePrimarioClaro) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = SobrePrimarioClaro
-                        )
-                    }
-                },
+                title = { Text("Iniciar sesión", color = sobrePrimario) },
                 colors = TopAppBarDefaults.mediumTopAppBarColors(
                     containerColor = Primario
                 )
             )
-        }
+        },
+        containerColor = fondo
     ) { paddingValues ->
         val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.animation_welcome))
         val progress by animateLottieCompositionAsState(composition, iterations = LottieConstants.IterateForever)
@@ -99,7 +95,6 @@ fun LoginScreen(navController: NavController) {
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Lottie animation
             LottieAnimation(
                 composition = composition,
                 progress = { progress },
@@ -109,7 +104,7 @@ fun LoginScreen(navController: NavController) {
             )
 
             Spacer(modifier = Modifier.height(40.dp))
-            // Email input
+
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -120,17 +115,16 @@ fun LoginScreen(navController: NavController) {
                 shape = MaterialTheme.shapes.medium,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Primario,
-                    unfocusedBorderColor = TextoClaro.copy(alpha = 0.3f),
+                    unfocusedBorderColor = textoPrimario.copy(alpha = 0.3f),
                     focusedLabelColor = Primario,
                     cursorColor = Primario,
-                    focusedTextColor = TextoClaro,
-                    unfocusedTextColor = TextoClaro,
+                    focusedTextColor = textoPrimario,
+                    unfocusedTextColor = textoPrimario,
                     errorBorderColor = Error,
                     errorLabelColor = Error
                 )
             )
 
-            // Password input
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -149,11 +143,11 @@ fun LoginScreen(navController: NavController) {
                 shape = MaterialTheme.shapes.medium,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Primario,
-                    unfocusedBorderColor = TextoClaro.copy(alpha = 0.3f),
+                    unfocusedBorderColor = textoPrimario.copy(alpha = 0.3f),
                     focusedLabelColor = Primario,
                     cursorColor = Primario,
-                    focusedTextColor = TextoClaro,
-                    unfocusedTextColor = TextoClaro,
+                    focusedTextColor = textoPrimario,
+                    unfocusedTextColor = textoPrimario,
                     errorBorderColor = Error,
                     errorLabelColor = Error
                 )
@@ -168,7 +162,6 @@ fun LoginScreen(navController: NavController) {
                 )
             }
 
-            // Botón Google
             Button(
                 onClick = {
                     val signInIntent = googleSignInClient.signInIntent
@@ -178,7 +171,7 @@ fun LoginScreen(navController: NavController) {
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
                 shape = MaterialTheme.shapes.large,
-                colors = ButtonDefaults.buttonColors(containerColor = Secundario, contentColor = SobrePrimarioClaro)
+                colors = ButtonDefaults.buttonColors(containerColor = Secundario, contentColor = sobrePrimario)
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_gmail),
@@ -189,7 +182,6 @@ fun LoginScreen(navController: NavController) {
                 Text("Iniciar sesión con Google")
             }
 
-            // Botón iniciar sesión
             Button(
                 onClick = {
                     loginViewModel.login(email, password, context) {
@@ -203,12 +195,11 @@ fun LoginScreen(navController: NavController) {
                     .fillMaxWidth()
                     .padding(vertical = 16.dp),
                 shape = MaterialTheme.shapes.large,
-                colors = ButtonDefaults.buttonColors(containerColor = Primario, contentColor = SobrePrimarioClaro)
+                colors = ButtonDefaults.buttonColors(containerColor = Primario, contentColor = sobrePrimario)
             ) {
                 Text(if (loginViewModel.isLoading.value) "Iniciando sesión..." else "Iniciar sesión")
             }
 
-            // Mensajes de error y opciones extra
             loginViewModel.errorMessage.value?.let {
                 if (!loginViewModel.passwordError.value) {
                     Text(
@@ -222,22 +213,20 @@ fun LoginScreen(navController: NavController) {
                         onClick = { loginViewModel.resendVerificationEmail() },
                         modifier = Modifier.padding(bottom = 12.dp)
                     ) {
-                        Text("Reenviar correo de verificación")
+                        Text("Reenviar correo de verificación", color = textoPrimario)
                     }
                 }
             }
 
-            // Enlaces
             TextButton(onClick = { navController.navigate("forgot_password") }) {
-                Text("¿Olvidaste tu contraseña?")
+                Text("¿Olvidaste tu contraseña?", color = textoPrimario)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("¿No tienes cuenta? ", color = TextoClaro)
+                Text("¿No tienes cuenta? ", color = textoPrimario)
                 TextButton(onClick = { navController.navigate("register") }) {
                     Text("Regístrate", color = Primario)
                 }
             }
         }
-
     }
 }
